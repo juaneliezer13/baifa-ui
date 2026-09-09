@@ -73,7 +73,7 @@ const handleCancel = () => {
         <button
           type="button"
           :disabled="loading"
-          class="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 active:scale-95 transition-all shadow-md shadow-orange-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+          class="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[#3eb134] hover:bg-[#349b2c] active:scale-95 transition-all shadow-md shadow-[#3eb134]/25 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
           @click="handleConfirm"
         >
           <v-progress-circular

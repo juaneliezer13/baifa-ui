@@ -21,7 +21,10 @@ export const useAuth = () => {
     const cleanEmail = credentials.email.trim().toLowerCase()
     const cleanPassword = credentials.password.trim()
 
-    if (cleanEmail === 'admin@admin' && cleanPassword === '12345678') {
+    const isValidDemo = (cleanEmail === 'admin@admin' && cleanPassword === '12345678')
+      || (cleanEmail === 'admin@baifa.com.ve' && cleanPassword.length > 0)
+
+    if (isValidDemo) {
       token.value = 'mock-jwt-token-baifa-superadmin-2026'
       user.value = {
         id: 1,

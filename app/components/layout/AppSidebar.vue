@@ -36,7 +36,7 @@ const handleLogout = async () => {
     <!-- Header: Logo & Branding -->
     <div>
       <div class="flex items-center gap-3 px-2 py-3 mb-6">
-        <div class="w-9 h-9 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-orange-500/20">
+        <div class="w-9 h-9 bg-[#3eb134] rounded-xl flex items-center justify-center text-white shadow-md shadow-[#3eb134]/25">
           <v-icon icon="mdi-flash" size="22" />
         </div>
         <div>
@@ -58,7 +58,7 @@ const handleLogout = async () => {
           class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-150"
           :class="[
             isActive(item.to)
-              ? 'bg-orange-500/10 text-orange-500 font-semibold'
+              ? 'bg-[#3eb134]/10 text-[#3eb134] font-semibold'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-normal'
           ]"
         >
@@ -70,7 +70,7 @@ const handleLogout = async () => {
           <!-- Active dot indicator -->
           <span
             v-if="isActive(item.to)"
-            class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50"
+            class="w-1.5 h-1.5 rounded-full bg-[#3eb134] shadow-sm shadow-[#3eb134]/50"
           />
         </NuxtLink>
       </nav>
@@ -84,11 +84,11 @@ const handleLogout = async () => {
             v-bind="menuProps"
             class="flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/70 border border-transparent hover:border-slate-700/50 transition-colors cursor-pointer group"
           >
-            <div class="w-9 h-9 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+            <div class="w-9 h-9 rounded-full bg-[#3eb134] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
               {{ user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2) : 'AM' }}
             </div>
             <div class="overflow-hidden min-w-0 flex-1">
-              <div class="text-xs font-semibold text-white truncate leading-tight group-hover:text-orange-400 transition-colors">
+              <div class="text-xs font-semibold text-white truncate leading-tight group-hover:text-[#3eb134] transition-colors">
                 {{ user?.name || 'Adriana Morales' }}
               </div>
               <div class="mt-1">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import AppLogo from '~/components/common/AppLogo.vue'
 
 definePageMeta({
   layout: 'auth'
@@ -18,9 +19,14 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
 
-const autofillDemo = () => {
-  email.value = 'admin@admin'
-  password.value = '12345678'
+const autofillDemo = (type: 'admin' | 'baifa' = 'baifa') => {
+  if (type === 'baifa') {
+    email.value = 'admin@baifa.com.ve'
+    password.value = '12345678'
+  } else {
+    email.value = 'admin@admin'
+    password.value = '12345678'
+  }
   errorMessage.value = ''
 }
 
@@ -53,35 +59,26 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm">
-    <!-- Título y subtítulo -->
-    <div class="text-center mb-6">
-      <h2 class="text-2xl font-bold text-white tracking-tight">
-        Iniciar Sesión
-      </h2>
-      <p class="text-xs text-slate-400 mt-1.5">
-        Ingresa tus credenciales para acceder a la plataforma
-      </p>
+  <div class="w-full max-w-sm mx-auto">
+    <!-- Logotipo Verde de Baifa -->
+    <div class="mb-6">
+      <AppLogo variant="green" size="lg" />
     </div>
 
-    <!-- Píldora de ayuda con credenciales de prueba -->
-    <div class="mb-5 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between text-xs">
-      <div class="text-slate-400 truncate pr-2">
-        <span class="text-slate-300 font-medium">Demo:</span> admin@admin / 12345678
-      </div>
-      <button
-        type="button"
-        class="px-2.5 py-1 text-[11px] font-semibold text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg transition-colors cursor-pointer shrink-0"
-        @click="autofillDemo"
-      >
-        Autocompletar
-      </button>
+    <!-- Título y Subtítulo -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-white tracking-tight">
+        Iniciar sesión
+      </h2>
+      <p class="text-sm text-slate-400 mt-1.5 font-normal">
+        Accede a tu cuenta en BaiFa Logistics
+      </p>
     </div>
 
     <!-- Alerta de error -->
     <div
       v-if="errorMessage"
-      class="mb-5 p-3 rounded-xl bg-red-950/40 border border-red-800/40 text-red-300 text-xs flex items-center gap-2"
+      class="mb-5 p-3 rounded-xl bg-red-950/50 border border-red-800/50 text-red-300 text-xs flex items-center gap-2"
     >
       <v-icon icon="mdi-alert-circle-outline" size="18" class="text-red-400 shrink-0" />
       <span>{{ errorMessage }}</span>
@@ -92,22 +89,17 @@ const handleLogin = async () => {
       <!-- Campo Correo Electrónico -->
       <div>
         <label for="email" class="block text-xs font-medium text-slate-300 mb-1.5">
-          Correo electrónico o usuario
+          Correo electrónico
         </label>
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-            <v-icon icon="mdi-email-outline" size="18" />
-          </div>
-          <input
-            id="email"
-            v-model="email"
-            type="text"
-            required
-            autocomplete="username"
-            placeholder="admin@admin"
-            class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
-          >
-        </div>
+        <input
+          id="email"
+          v-model="email"
+          type="text"
+          required
+          autocomplete="username"
+          placeholder="usuario@baifa.com.ve"
+          class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+        >
       </div>
 
       <!-- Campo Contraseña -->
@@ -116,9 +108,6 @@ const handleLogin = async () => {
           Contraseña
         </label>
         <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-            <v-icon icon="mdi-lock-outline" size="18" />
-          </div>
           <input
             id="password"
             v-model="password"
@@ -126,11 +115,11 @@ const handleLogin = async () => {
             required
             autocomplete="current-password"
             placeholder="••••••••"
-            class="w-full pl-10 pr-11 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+            class="w-full px-3.5 pr-10 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
           >
           <button
             type="button"
-            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
             @click="showPassword = !showPassword"
           >
             <v-icon :icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" size="18" />
@@ -138,30 +127,30 @@ const handleLogin = async () => {
         </div>
       </div>
 
-      <!-- Opciones adicionales: Recordarme / Olvidé contraseña -->
+      <!-- Recordarme y ¿Olvidaste tu contraseña? -->
       <div class="flex items-center justify-between text-xs pt-1">
-        <label class="flex items-center gap-2 cursor-pointer select-none text-slate-400 hover:text-slate-300">
+        <label class="flex items-center gap-2 cursor-pointer select-none text-slate-300 hover:text-white">
           <input
             v-model="rememberMe"
             type="checkbox"
-            class="rounded border-slate-700 bg-[#161e31] text-orange-500 focus:ring-orange-500"
+            class="rounded border-slate-700 bg-[#161e31] text-[#3eb134] focus:ring-[#3eb134]"
           >
-          <span>Recordar sesión</span>
+          <span>Recordarme</span>
         </label>
         <NuxtLink
           to="/forgot-password"
-          class="text-orange-400 hover:text-orange-300 font-medium transition-colors"
+          class="text-[#3eb134] hover:text-[#349b2c] transition-colors font-medium"
         >
           ¿Olvidaste tu contraseña?
         </NuxtLink>
       </div>
 
-      <!-- Botón de Envío -->
+      <!-- Botón Ingresar al sistema -->
       <div class="pt-2">
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 active:scale-[0.99] transition-all duration-150 shadow-md shadow-orange-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+          class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-[#3eb134] hover:bg-[#349b2c] active:scale-[0.99] transition-all duration-150 shadow-md shadow-[#3eb134]/25 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
         >
           <v-progress-circular
             v-if="isLoading"
@@ -170,16 +159,34 @@ const handleLogin = async () => {
             width="2"
             color="white"
           />
-          <span>{{ isLoading ? 'Comprobando...' : 'Iniciar Sesión' }}</span>
+          <span>{{ isLoading ? 'Ingresando...' : 'Ingresar al sistema' }}</span>
         </button>
       </div>
     </form>
 
-    <!-- Enlace a registro -->
-    <div class="mt-6 pt-5 border-t border-slate-800 text-center text-xs text-slate-400">
-      <span>¿No tienes una cuenta de cliente? </span>
-      <NuxtLink to="/register" class="text-orange-400 hover:text-orange-300 font-medium transition-colors">
-        Registrarse
+    <!-- Credenciales de prueba -->
+    <div class="mt-6 p-4 rounded-xl bg-[#0b1f13]/60 border border-[#3eb134]/25 text-xs">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="font-semibold text-slate-200">Credenciales de prueba</span>
+        <button
+          type="button"
+          class="text-[11px] font-semibold text-[#3eb134] hover:underline cursor-pointer"
+          @click="autofillDemo('baifa')"
+        >
+          Autocompletar
+        </button>
+      </div>
+      <div class="text-slate-400 space-y-0.5 text-[11px]">
+        <div>Email: <span class="text-[#3eb134] font-mono">admin@baifa.com.ve</span> (o admin@admin)</div>
+        <div>Contraseña: <span class="text-[#3eb134] font-mono">12345678</span></div>
+      </div>
+    </div>
+
+    <!-- Enlace Solicitar acceso -->
+    <div class="mt-6 text-center text-xs text-slate-400">
+      <span>¿No tienes cuenta?</span>
+      <NuxtLink to="/register" class="text-[#3eb134] hover:text-[#349b2c] font-semibold ml-1.5 transition-colors">
+        Solicitar acceso
       </NuxtLink>
     </div>
   </div>

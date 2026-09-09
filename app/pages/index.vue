@@ -12,7 +12,7 @@ interface KpiCard {
 }
 
 const kpiCards: KpiCard[] = [
-  { label: 'Generadores activos', value: 4, icon: 'mdi-flash', color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
+  { label: 'Generadores activos', value: 4, icon: 'mdi-flash', color: 'text-[#3eb134]', bgColor: 'bg-[#3eb134]/10' },
   { label: 'En Warehouse', value: 1, icon: 'mdi-home-outline', color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
   { label: 'En Tránsito', value: 2, icon: 'mdi-truck-outline', color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
   { label: 'Entregados/Instalados', value: 2, icon: 'mdi-check', color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
@@ -162,7 +162,7 @@ const systemUsers: SystemUser[] = [
                   :key="gen.serial"
                   class="hover:bg-slate-800/30 transition-colors"
                 >
-                  <td class="py-3.5 pr-4 font-semibold text-orange-400">
+                  <td class="py-3.5 pr-4 font-semibold text-[#3eb134]">
                     {{ gen.serial }}
                   </td>
                   <td class="py-3.5 px-4">
@@ -191,7 +191,7 @@ const systemUsers: SystemUser[] = [
             class="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-slate-800/30 transition-colors"
           >
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+              <div class="w-9 h-9 rounded-full bg-[#3eb134] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
                 {{ user.initials }}
               </div>
               <div class="min-w-0">

@@ -1,0 +1,489 @@
+{
+  "baifaWebsite": {
+    "title": "Baifa Power – Más que energía, confianza.",
+    "logos": [
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/05/logo-baifa.png",
+        "alt": "",
+        "className": "logo dark"
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/05/logo-baifa-dark.webp",
+        "alt": "Baifa Power",
+        "className": "custom-logo"
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/06/slideshow_1.webp",
+        "alt": "",
+        "className": ""
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/05/cropped-cummins.webp",
+        "alt": "",
+        "className": "left-img shadow-large-black"
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/05/planta-baifa.webp",
+        "alt": "",
+        "className": "center-img shadow-large-black"
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/05/cropped-BFC170S.jpg",
+        "alt": "",
+        "className": "right-img shadow-large-black"
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/06/porfolio_dasa.webp",
+        "alt": "",
+        "className": ""
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/06/porfolio_convaca.webp",
+        "alt": "",
+        "className": ""
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/06/porfolio_purolomo1.webp",
+        "alt": "",
+        "className": ""
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/06/porfolio_amanecer2.webp",
+        "alt": "",
+        "className": ""
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/06/porfolio_farmatodo.jpg",
+        "alt": "",
+        "className": ""
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/06/porfolio_vicson.webp",
+        "alt": "",
+        "className": ""
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/plugins/wpforms-lite/assets/images/submit-spin.svg",
+        "alt": "Loading",
+        "className": "wpforms-submit-spinner"
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/05/logo-baifa.png",
+        "alt": "",
+        "className": "logo dark"
+      },
+      {
+        "src": "https://baifa.com.ve/wp-content/uploads/2026/05/logo-baifa-dark.webp",
+        "alt": "Baifa Power",
+        "className": "custom-logo"
+      }
+    ],
+    "colors": [
+      "rgb(62, 177, 52)",
+      "rgb(255, 255, 255)",
+      "rgb(107, 124, 147)",
+      "rgb(142, 157, 174)",
+      "rgb(60, 66, 79)",
+      "rgb(35, 34, 34)",
+      "rgb(3, 169, 244)",
+      "rgb(0, 0, 0)"
+    ],
+    "bgColors": [
+      "rgb(62, 177, 52)",
+      "rgb(41, 41, 41)",
+      "rgb(6, 106, 171)",
+      "rgba(255, 255, 255, 0.05)"
+    ],
+    "fonts": [
+      "\"Open Sans\", sans-serif",
+      "Muli, sans-serif",
+      "\"Open Sans\"",
+      "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Helvetica Neue\", Arial, sans-serif"
+    ]
+  },
+  "figmaScreens": {
+    "login": {
+      "title": "Prototipo Baifa - Gestion de Generadores",
+      "url": "https://layer-ethics-21492417.figma.site/login",
+      "elements": [
+        {
+          "tag": "P",
+          "text": "LOGISTICS PLATFORM",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(75, 107, 77)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "10px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "MÁS QUE ENERGÍA, CONFIANZA",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(61, 171, 43)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "H2",
+          "text": "Trazabilidad total para tus generadores",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(232, 245, 227)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "28px",
+            "fontFamily": "Mulish, sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Monitorea cada movimiento desde el warehouse hasta el punto de entrega, con actualizaciones en tiempo real.",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(84, 107, 86)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "SPAN",
+          "text": "Tracking de generadores por serial y punto de control",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(85, 107, 87)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "SPAN",
+          "text": "Actualizaciones manuales de estado por el equipo",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(85, 107, 87)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "SPAN",
+          "text": "Gestión de clientes, usuarios y permisos por cargo",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(85, 107, 87)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "SPAN",
+          "text": "Reportes operativos y registro fotográfico de unidades",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(85, 107, 87)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "BF-C170S",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(138, 173, 139)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "Mulish, sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Diesel Generator · Soundproof",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(61, 92, 62)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "www.baifapower.com",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(45, 67, 46)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "© 2026 BaiFa Power · Todos los derechos reservados.",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(30, 51, 31)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "H1",
+          "text": "Iniciar sesión",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(226, 232, 240)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "22px",
+            "fontFamily": "Mulish, sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Accede a tu cuenta en BaiFa Logistics",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(100, 116, 139)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "text": "Correo electrónico",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(148, 163, 184)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "placeholder": "usuario@baifa.com.ve",
+          "type": "email",
+          "style": {
+            "color": "rgb(226, 232, 240)",
+            "backgroundColor": "rgb(22, 31, 48)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "text": "Contraseña",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(148, 163, 184)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "placeholder": "••••••••",
+          "type": "password",
+          "style": {
+            "color": "rgb(226, 232, 240)",
+            "backgroundColor": "rgb(22, 31, 48)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "text": "Recordarme",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(226, 232, 240)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "16px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "SPAN",
+          "text": "Recordarme",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(148, 163, 184)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "¿Olvidaste tu contraseña?",
+          "placeholder": "",
+          "type": "button",
+          "style": {
+            "color": "rgb(61, 171, 43)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Ingresar al sistema",
+          "placeholder": "",
+          "type": "submit",
+          "style": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(61, 171, 43)",
+            "fontSize": "14px",
+            "fontFamily": "Mulish, sans-serif",
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Credenciales de prueba",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(75, 107, 77)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Email: admin@baifa.com.ve",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(100, 116, 139)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "SPAN",
+          "text": "admin@baifa.com.ve",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(61, 171, 43)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Contraseña: cualquier valor",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(100, 116, 139)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "SPAN",
+          "text": "cualquier valor",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(61, 171, 43)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "12px",
+            "fontFamily": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "P",
+          "text": "¿No tienes cuenta? Solicitar acceso",
+          "placeholder": "",
+          "type": "",
+          "style": {
+            "color": "rgb(100, 116, 139)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Solicitar acceso",
+          "placeholder": "",
+          "type": "submit",
+          "style": {
+            "color": "rgb(61, 171, 43)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "fontSize": "14px",
+            "fontFamily": "\"Open Sans\", sans-serif",
+            "borderRadius": "0px"
+          }
+        }
+      ]
+    }
+  }
+}

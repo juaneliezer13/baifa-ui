@@ -1,4 +1,4 @@
-﻿import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss'
 
 export default <Partial<Config>>{
   corePlugins: {
@@ -17,6 +17,8 @@ export default <Partial<Config>>{
           card: '#131d31',
           input: '#161e31',
           border: '#1e293b',
+          green: '#3eb134',
+          greenHover: '#349b2c',
           orange: '#f97316',
           orangeHover: '#ea580c',
         }
