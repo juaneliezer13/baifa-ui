@@ -1,0 +1,81 @@
+{
+  "fontFamily": "Inter, sans-serif",
+  "bodyBg": "rgb(11, 17, 32)",
+  "bodyColor": "rgb(226, 232, 240)",
+  "navItems": [
+    {
+      "text": "Dashboard"
+    },
+    {
+      "text": "Rastrear"
+    },
+    {
+      "text": "Generadores"
+    },
+    {
+      "text": "Clientes"
+    },
+    {
+      "text": "Usuarios"
+    },
+    {
+      "text": "Reportes"
+    }
+  ],
+  "sampleButtons": [
+    {
+      "text": "Dashboard",
+      "bg": "rgba(249, 115, 22, 0.1)",
+      "color": "rgb(249, 115, 22)",
+      "borderRadius": "12px",
+      "padding": "10px 12px",
+      "fontSize": "16px",
+      "fontWeight": "600"
+    },
+    {
+      "text": "Rastrear",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(100, 116, 139)",
+      "borderRadius": "12px",
+      "padding": "10px 12px",
+      "fontSize": "16px",
+      "fontWeight": "400"
+    },
+    {
+      "text": "Generadores",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(100, 116, 139)",
+      "borderRadius": "12px",
+      "padding": "10px 12px",
+      "fontSize": "16px",
+      "fontWeight": "400"
+    },
+    {
+      "text": "Clientes",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(100, 116, 139)",
+      "borderRadius": "12px",
+      "padding": "10px 12px",
+      "fontSize": "16px",
+      "fontWeight": "400"
+    },
+    {
+      "text": "Usuarios",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(100, 116, 139)",
+      "borderRadius": "12px",
+      "padding": "10px 12px",
+      "fontSize": "16px",
+      "fontWeight": "400"
+    },
+    {
+      "text": "Reportes",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(100, 116, 139)",
+      "borderRadius": "12px",
+      "padding": "10px 12px",
+      "fontSize": "16px",
+      "fontWeight": "400"
+    }
+  ]
+}
