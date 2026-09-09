@@ -1,39 +1,42 @@
-# Reglas y Guía de Desarrollo para Agentes de IA - Baifa UI (Frontend)
+# 🤖 Reglas y Guía de Desarrollo para Agentes de IA - Baifa UI (Frontend)
 
-Este archivo establece las directrices de trabajo para el desarrollo del frontend de **Baifa Power Tracking**.
-
----
-
-## 1. Contexto del Proyecto y Dominio de Negocio
-- **Proyecto:** Baifa Power Tracking - Frontend Web SPA/SSR.
-- **Tecnologías Core:** Vue.js 3, Nuxt 4, Vuetify 3 (uetify-nuxt-module), Material Design Icons (@mdi/font).
-- **Arquitectura:** Frontend totalmente desacoplado del backend (aifa-api), comunicándose vía API REST con autenticación Bearer Token (Sanctum).
-- **Reglas de Negocio Generales:** Compartidas con el backend y documentadas detalladamente en:
-  - [docs/business_rules.md](file:///mnt/c/Users/Usuario/Proyectos/baifa-ui/docs/business_rules.md) (Módulos 1 al 5, tarifas, checkpoints y reglas fiscales).
-  - [docs/business/diseno_figma.md](file:///mnt/c/Users/Usuario/Proyectos/baifa-ui/docs/business/diseno_figma.md) (Prototipo y flujos de usuario extraídos de Figma).
-  - [docs/openapi.yaml](file:///mnt/c/Users/Usuario/Proyectos/baifa-ui/docs/openapi.yaml) (Especificación OpenAPI de los endpoints del backend).
+Este repositorio contiene la aplicación cliente web frontend **baifa-ui** para el sistema logístico de generadores eléctricos (BaiFa Power Tracking). Cualquier modelo de lenguaje o agente autónomo (Antigravity, Claude, Cursor, LLMs) que trabaje en este código DEBE adherirse estrictamente a estas directrices.
 
 ---
 
-## 2. Reglas de Negocio Clave
-1. **Roles de Usuario:**
-   - \client\: Acceso exclusivo al portal de tracking de sus generadores asociados y reporte de historial.
-   - \employee\: Acceso a registro manual de puntos de control / checkpoints y consulta operativa.
-   - \manager\: Gestión operativa, asignación de generadores a clientes, reportes globales.
-   - \dmin\: Control total (usuarios, clientes fiscales, generadores, checkpoints, auditoría).
-2. **Puntos de Control (Checkpoints):**
-   - La actualización de estatus es **completamente manual** (nunca automatizada por GPS).
-3. **Multi-tenant / Aislamiento:**
-   - Un cliente solo puede ver los generadores explícitamente asignados a su RIF / cuenta.
+## 1. Stack Tecnológico y Arquitectura
+- **Framework:** Nuxt 4 (Vue.js 3, Composition API, `<script setup lang="ts">`).
+- **Librería de Componentes UI:** Vuetify 3 (`vuetify-nuxt-module`).
+- **Iconografía:** Material Design Icons (`@mdi/font`).
+- **Arquitectura:** Aplicación SPA / SSR desacoplada, consumiendo endpoints REST mediante clientes HTTP reactivos (`useFetch` / `$fetch`).
 
 ---
 
-## 3. Reglas Técnicas del Frontend (Pendientes de especificación por el usuario)
-*(Esta sección se completará con las reglas específicas que proporcione el usuario en el próximo mensaje).*
+## 2. Documentación y Especificación de Negocio (Frontend)
+- [`docs/business_rules.md`](docs/business_rules.md): Libro de reglas funcionales de negocio por etapa y rol de usuario.
+- [`docs/business/diseno_figma.md`](docs/business/diseno_figma.md): Especificación del prototipo oficial en Figma (vistas, modales, campos y estilos visuales).
 
 ---
 
-## 4. Flujo Git
-- Rama principal de producción: \main\.
-- Rama base de desarrollo activo: \develop\.
-- Ramas de características: \eature/nombre-de-la-funcionalidad\ partiendo de \develop\.
+## 3. Reglas de Negocio Clave en Interfaz
+1. **Roles y Control de Acceso en Navegación:**
+   - `client`: Acceso exclusivo al portal de autoconsulta de sus generadores asociados y línea de tiempo de tracking.
+   - `employee`: Operador logístico. Acceso al catálogo y actualización de checkpoints.
+   - `manager`: Supervisión operativa, métricas de inventario y reportes.
+   - `admin`: Control y configuración integral de interfaces.
+2. **Actualización Estrictamente Manual:**
+   - La plataforma NO utiliza mapas automatizados por GPS ni telemetría externa. La captura y cambio de checkpoints es 100% manual por parte de los operadores.
+3. **Aislamiento de Información:**
+   - El cliente solo puede visualizar datos de equipos asociados a su empresa.
+
+---
+
+## 4. Reglas Técnicas del Frontend (En espera de directrices del usuario)
+*(Esta sección se completará con las reglas técnicas específicas que proporcione el usuario en el próximo mensaje).*
+
+---
+
+## 5. Flujo Git
+- Rama principal de producción: `main`.
+- Rama base de desarrollo activo: `develop`.
+- Ramas de características: `feature/nombre-de-la-funcionalidad` originadas desde `develop`.
