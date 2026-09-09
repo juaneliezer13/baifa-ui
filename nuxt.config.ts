@@ -5,7 +5,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Baifa - Logistics Platform',
+      title: 'Baifa',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

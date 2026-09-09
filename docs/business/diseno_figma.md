@@ -1,8 +1,8 @@
-﻿# 🎨 Sistema de Diseño Oficial extraído del Prototipo de Figma (Figma Make)
+# 🎨 Sistema de Diseño Oficial extraído del Prototipo de Figma (Figma Make)
 
 * **URL del Prototipo Oficial:** [https://layer-ethics-21492417.figma.site](https://layer-ethics-21492417.figma.site)
-* **Nombre de la Aplicación:** *Baifa - Logistics Platform*
-* **Tema Visual:** Dark Modern UI (Slate 950 / Deep Navy con acentos Orange 500)
+* **Nombre de la Aplicación:** *Baifa*
+* **Tema Visual:** Dark Modern UI (Slate 950 / Deep Navy con acentos Verde Baifa #3eb134)
 * **Capturas de Pantalla en Alta Resolución:** [docs/screenshots/](../screenshots/)
 
 ---
@@ -69,8 +69,7 @@
 
 ### 5. Estructura de la Barra de Navegación Lateral (Sidebar)
 * **Encabezado:**
-  * Logo: Cuadro naranja #f97316 de 36x36px con bordes redondeados (10px) e icono de rayo blanco (mdi-flash).
-  * Textos: **Baifa** (	ext-base font-bold text-white) y **Logistics Platform** (	ext-xs text-slate-400).
+  * Logo: Cuadro verde #3eb134 de 36x36px con bordes redondeados (10px) e icono de rayo blanco (mdi-flash) junto al texto **Baifa** (\text-base font-bold text-white).
 * **Menú de 6 Secciones:**
   1. Dashboard (mdi-view-dashboard-outline)
   2. Rastrear (mdi-magnify)

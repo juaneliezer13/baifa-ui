@@ -76,7 +76,7 @@ const systemUsers: SystemUser[] = [
         Panel de Control
       </h1>
       <p class="text-sm text-slate-400 mt-1 font-normal">
-        Resumen operativo — Baifa Logistics
+        Resumen operativo — Baifa
       </p>
     </div>
 

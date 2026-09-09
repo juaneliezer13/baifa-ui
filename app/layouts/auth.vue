@@ -8,13 +8,13 @@ const isRegister = computed(() => route.path.includes('register'))
 const isForgot = computed(() => route.path.includes('forgot-password'))
 
 const heroTitle = computed(() => {
-  if (isRegister.value) return 'Únete a la plataforma de logística de BaiFa'
+  if (isRegister.value) return 'Únete a BaiFa'
   if (isForgot.value) return 'Recupera el acceso a tu cuenta'
   return 'Trazabilidad total para tus generadores'
 })
 
 const heroSubtitle = computed(() => {
-  if (isRegister.value) return 'Gestiona envíos, clientes y usuarios desde un panel centralizado y seguro.'
+  if (isRegister.value) return 'Gestiona tus generadores y solicitudes desde un panel centralizado y seguro.'
   if (isForgot.value) return 'Te enviaremos un enlace seguro para restablecer tu contraseña de inmediato.'
   return 'Monitorea cada movimiento desde el warehouse hasta el punto de entrega, con actualizaciones en tiempo real.'
 })
@@ -36,9 +36,9 @@ const features = [
         <div class="pointer-events-none absolute -top-24 -left-24 w-96 h-96 bg-[#3eb134]/15 blur-[120px] rounded-full" />
         <div class="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[350px] bg-[#3eb134]/10 blur-[140px] rounded-full" />
 
-        <!-- Encabezado Izquierdo: Logotipo Blanco con subtítulo -->
+        <!-- Encabezado Izquierdo: Logotipo Blanco -->
         <div class="relative z-10">
-          <AppLogo variant="white" size="md" show-subtitle />
+          <AppLogo variant="white" size="md" />
         </div>
 
         <!-- Bloque Central: Titular, Beneficios y Tarjeta de Producto -->

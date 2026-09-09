@@ -40,12 +40,9 @@ const handleLogout = async () => {
           <v-icon icon="mdi-flash" size="22" />
         </div>
         <div>
-          <h1 class="text-base font-bold text-white tracking-tight leading-tight">
+          <h1 class="text-lg font-bold text-white tracking-tight leading-tight">
             Baifa
           </h1>
-          <p class="text-[11px] text-slate-400 font-normal">
-            Logistics Platform
-          </p>
         </div>
       </div>
 

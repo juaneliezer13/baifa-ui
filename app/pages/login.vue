@@ -71,7 +71,7 @@ const handleLogin = async () => {
         Iniciar sesión
       </h2>
       <p class="text-sm text-slate-400 mt-1.5 font-normal">
-        Accede a tu cuenta en BaiFa Logistics
+        Accede a tu cuenta en BaiFa
       </p>
     </div>
 

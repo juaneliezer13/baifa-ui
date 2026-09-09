@@ -12,26 +12,12 @@ useHead({
 
 const fullName = ref('')
 const email = ref('')
-const requestedRole = ref('Operador')
 const password = ref('')
 const passwordConfirm = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
 const isSuccess = ref(false)
-
-const roleDescription = computed(() => {
-  switch (requestedRole.value) {
-    case 'Operador':
-      return 'Puede actualizar estados de generadores y consultar clientes. Sin gestión de usuarios.'
-    case 'Administrador':
-      return 'Acceso completo a generadores, clientes, trazabilidad y reportes operativos.'
-    case 'Visualizador':
-      return 'Consulta de estados y seguimiento de generadores en modo solo lectura.'
-    default:
-      return ''
-  }
-})
 
 const handleRegister = async () => {
   if (password.value !== passwordConfirm.value) {
@@ -71,7 +57,7 @@ const handleRegister = async () => {
         Solicitar acceso
       </h2>
       <p class="text-sm text-slate-400 mt-1.5 font-normal">
-        Completa el formulario para registrarte en la plataforma
+        Completa el formulario para registrarte como cliente en BaiFa
       </p>
     </div>
 
@@ -87,7 +73,7 @@ const handleRegister = async () => {
         ¡Solicitud enviada con éxito!
       </h3>
       <p class="text-xs text-slate-300 leading-relaxed">
-        Tu solicitud con el rol <strong class="text-[#3eb134]">{{ requestedRole }}</strong> ha sido recibida. El equipo administrador revisará y habilitará tu acceso.
+        Tu solicitud de acceso como cliente ha sido recibida. El equipo de BaiFa revisará y habilitará tu cuenta.
       </p>
       <div class="pt-3">
         <NuxtLink
@@ -138,31 +124,6 @@ const handleRegister = async () => {
           placeholder="nombre@empresa.com"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
         >
-      </div>
-
-      <!-- Rol Solicitado -->
-      <div>
-        <label for="role" class="block text-xs font-medium text-slate-300 mb-1.5">
-          Rol solicitado *
-        </label>
-        <select
-          id="role"
-          v-model="requestedRole"
-          class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors cursor-pointer"
-        >
-          <option value="Operador">
-            Operador
-          </option>
-          <option value="Administrador">
-            Administrador
-          </option>
-          <option value="Visualizador">
-            Visualizador
-          </option>
-        </select>
-        <p class="text-[11px] text-slate-400 mt-1.5 leading-normal">
-          {{ roleDescription }}
-        </p>
       </div>
 
       <!-- Separador de Contraseña -->
