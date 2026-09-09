@@ -2,12 +2,19 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+
+  typescript: {
+    strict: true
+  },
+
   modules: [
-    'vuetify-nuxt-module'
+    'vuetify-nuxt-module',
+    '@nuxtjs/tailwindcss'
   ],
+
   vuetify: {
     moduleOptions: {
-      /* module specific options */
+      /* opciones específicas del módulo */
     },
     vuetifyOptions: {
       theme: {

@@ -1,0 +1,23 @@
+﻿# Reglas de Desarrollo de Cursor y Agentes de IA - Baifa UI
+
+## 1. Operativa
+- NO ejecutar tests (npm test / vitest) ni linters (eslint / prettier) automáticamente. Solo cuando el usuario lo pida explícitamente en el chat.
+
+## 2. Stack y Arquitectura
+- Nuxt 4 + Vue.js 3 + Vuetify 3 + Tailwind CSS + TypeScript estricto.
+- Componentes en pp/components/<modulo>/ en PascalCase con Principio de Responsabilidad Única.
+- Componentes funcionales y estructurales con Vuetify (v-app, v-main, v-card, v-data-table, v-dialog, v-btn, v-text-field).
+- Tailwind CSS para diseño visual avanzado, efectos gráficos (gradientes, glassmorphism, sombras, bordes y micro-interacciones).
+- Mantener preflight: false en 	ailwind.config.ts.
+- SSR safe: verificar import.meta.client o <ClientOnly> para APIs de navegador.
+
+## 3. TypeScript Estándar 2026
+- <script setup lang=ts> en el 100% de los SFCs. Prohibido Options API.
+- Cero tolerancia a ny. Usar tipos específicos o unknown con type guards.
+- Props con desestructuración reactiva nativa de Vue 3.5+: const { prop = default } = defineProps<Props>().
+- Emits tipados con tuplas: defineEmits<{ event: [payload: Type] }>().
+- defineModel<T>() para v-model bidireccional moderno.
+- Entidades y tipos de API centralizados en 	ypes/*.ts.
+
+## 4. Negocio
+- Toda regla de interfaz debe seguir docs/business_rules.md y el diseño visual de docs/business/diseno_figma.md.
