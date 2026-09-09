@@ -9,12 +9,20 @@ useHead({
   title: 'Iniciar Sesión - Baifa'
 })
 
+const { login } = useAuth()
+
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
+
+const autofillDemo = () => {
+  email.value = 'admin@admin'
+  password.value = '12345678'
+  errorMessage.value = ''
+}
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
@@ -26,11 +34,18 @@ const handleLogin = async () => {
   isLoading.value = true
 
   try {
-    // Simulación o llamado a la API de autenticación
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    await navigateTo('/')
+    const result = await login({
+      email: email.value,
+      password: password.value
+    })
+
+    if (result.success) {
+      await navigateTo('/')
+    } else {
+      errorMessage.value = result.message || 'Credenciales inválidas.'
+    }
   } catch (err: unknown) {
-    errorMessage.value = 'Credenciales inválidas. Por favor intenta nuevamente.'
+    errorMessage.value = 'Ocurrió un error al intentar iniciar sesión.'
   } finally {
     isLoading.value = false
   }
@@ -49,6 +64,20 @@ const handleLogin = async () => {
       </p>
     </div>
 
+    <!-- Píldora de ayuda con credenciales de prueba -->
+    <div class="mb-5 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between text-xs">
+      <div class="text-slate-400 truncate pr-2">
+        <span class="text-slate-300 font-medium">Demo:</span> admin@admin / 12345678
+      </div>
+      <button
+        type="button"
+        class="px-2.5 py-1 text-[11px] font-semibold text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg transition-colors cursor-pointer shrink-0"
+        @click="autofillDemo"
+      >
+        Autocompletar
+      </button>
+    </div>
+
     <!-- Alerta de error -->
     <div
       v-if="errorMessage"
@@ -63,7 +92,7 @@ const handleLogin = async () => {
       <!-- Campo Correo Electrónico -->
       <div>
         <label for="email" class="block text-xs font-medium text-slate-300 mb-1.5">
-          Correo electrónico
+          Correo electrónico o usuario
         </label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -72,10 +101,10 @@ const handleLogin = async () => {
           <input
             id="email"
             v-model="email"
-            type="email"
+            type="text"
             required
-            autocomplete="email"
-            placeholder="ejemplo@baifa.com.ve"
+            autocomplete="username"
+            placeholder="admin@admin"
             class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
           >
         </div>
@@ -141,7 +170,7 @@ const handleLogin = async () => {
             width="2"
             color="white"
           />
-          <span>{{ isLoading ? 'Ingresando...' : 'Iniciar Sesión' }}</span>
+          <span>{{ isLoading ? 'Comprobando...' : 'Iniciar Sesión' }}</span>
         </button>
       </div>
     </form>

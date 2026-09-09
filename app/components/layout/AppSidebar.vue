@@ -8,6 +8,7 @@ interface NavItem {
 }
 
 const route = useRoute()
+const { user, logout } = useAuth()
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', to: '/', icon: 'mdi-view-dashboard-outline' },
@@ -23,6 +24,10 @@ const isActive = (path: string): boolean => {
     return route.path === '/'
   }
   return route.path.startsWith(path)
+}
+
+const handleLogout = async () => {
+  await logout()
 }
 </script>
 
@@ -71,23 +76,63 @@ const isActive = (path: string): boolean => {
       </nav>
     </div>
 
-    <!-- Footer: User Profile Badge -->
+    <!-- Footer: User Profile Card con Menú Desplegable -->
     <div class="pt-4 border-t border-slate-800/80">
-      <div class="flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/50 transition-colors cursor-pointer">
-        <div class="w-9 h-9 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
-          AM
-        </div>
-        <div class="overflow-hidden min-w-0 flex-1">
-          <div class="text-xs font-semibold text-white truncate leading-tight">
-            Adriana Morales
+      <v-menu location="top start" :offset="10">
+        <template #activator="{ props: menuProps }">
+          <div
+            v-bind="menuProps"
+            class="flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/70 border border-transparent hover:border-slate-700/50 transition-colors cursor-pointer group"
+          >
+            <div class="w-9 h-9 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+              {{ user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2) : 'AM' }}
+            </div>
+            <div class="overflow-hidden min-w-0 flex-1">
+              <div class="text-xs font-semibold text-white truncate leading-tight group-hover:text-orange-400 transition-colors">
+                {{ user?.name || 'Adriana Morales' }}
+              </div>
+              <div class="mt-1">
+                <span class="inline-block text-[10px] font-medium text-red-400 bg-red-950/60 border border-red-800/40 px-2 py-0.5 rounded-full leading-none">
+                  {{ user?.roleLabel || 'Superadministrador' }}
+                </span>
+              </div>
+            </div>
+            <v-icon icon="mdi-unfold-more-horizontal" size="18" class="text-slate-500 group-hover:text-slate-300 transition-colors" />
           </div>
-          <div class="mt-1">
-            <span class="inline-block text-[10px] font-medium text-red-400 bg-red-950/60 border border-red-800/40 px-2 py-0.5 rounded-full leading-none">
-              Superadministrador
-            </span>
+        </template>
+
+        <!-- Contenedor flotante del menú desplegable -->
+        <div class="w-60 bg-[#0f172a] border border-slate-700/70 rounded-2xl p-2 shadow-2xl space-y-1 text-slate-200">
+          <div class="px-3 py-2 border-b border-slate-800 mb-1">
+            <div class="text-xs font-semibold text-white truncate">
+              {{ user?.name || 'Adriana Morales' }}
+            </div>
+            <div class="text-[11px] text-slate-400 truncate mt-0.5">
+              {{ user?.email || 'admin@baifa.com.ve' }}
+            </div>
           </div>
+
+          <!-- Opción: Ver Perfil (link inactivo sin navegación) -->
+          <a
+            href="#"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
+            @click.prevent
+          >
+            <v-icon icon="mdi-account-outline" size="18" class="text-slate-400" />
+            <span>Ver perfil</span>
+          </a>
+
+          <!-- Opción: Cerrar Sesión (destruye cookies y redirige a login) -->
+          <button
+            type="button"
+            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer text-left"
+            @click="handleLogout"
+          >
+            <v-icon icon="mdi-logout" size="18" class="text-red-400" />
+            <span>Cerrar sesión</span>
+          </button>
         </div>
-      </div>
+      </v-menu>
     </div>
   </aside>
 </template>
