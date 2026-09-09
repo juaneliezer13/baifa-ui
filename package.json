@@ -17,5 +17,8 @@
     "vue-router": "^5.3.1",
     "vuetify": "^3.13.4",
     "vuetify-nuxt-module": "^1.0.0-rc.5"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }
