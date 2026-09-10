@@ -22,14 +22,22 @@ const role = ref<SystemUserRole>('employee')
 const isActive = ref(true)
 
 const isEditing = computed(() => Boolean(props.userToEdit))
+const isClientUser = computed(() => isEditing.value && props.userToEdit?.role === 'client')
 
 // Opciones de roles según el prototipo y modelo de negocio
-const roleOptions: { value: SystemUserRole; label: string }[] = [
-  { value: 'admin', label: 'Administrador' },
-  { value: 'manager', label: 'Jefe / Gerente' },
-  { value: 'employee', label: 'Operador' },
-  { value: 'client', label: 'Cliente' },
-]
+// Nota: Los usuarios de tipo 'client' se crean exclusivamente desde el módulo de Clientes
+const roleOptions = computed<{ value: SystemUserRole; label: string }[]>(() => {
+  if (isClientUser.value) {
+    return [
+      { value: 'client', label: 'Cliente (Vinculado a empresa)' }
+    ]
+  }
+  return [
+    { value: 'admin', label: 'Administrador' },
+    { value: 'manager', label: 'Jefe / Gerente' },
+    { value: 'employee', label: 'Operador' },
+  ]
+})
 
 // Descripción dinámica de permisos según el prototipo
 const roleDescriptions: Record<SystemUserRole, string> = {
@@ -94,7 +102,7 @@ const handleSubmit = () => {
             {{ isEditing ? 'Editar usuario' : 'Nuevo usuario' }}
           </h2>
           <p class="text-xs text-slate-400 mt-0.5">
-            {{ isEditing ? 'Modifica los datos y permisos del usuario' : 'Ingresa los datos para registrar un usuario' }}
+            {{ isEditing ? 'Modifica los datos y permisos del usuario' : 'Ingresa los datos para registrar un usuario operativo o administrativo' }}
           </p>
         </div>
 
@@ -183,13 +191,20 @@ const handleSubmit = () => {
 
         <!-- Campo: Cargo / Rol -->
         <div>
-          <label for="role" class="block text-xs font-medium text-slate-300 mb-1.5">
-            Cargo / Rol <span class="text-[#3eb134]">*</span>
-          </label>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="role" class="block text-xs font-medium text-slate-300">
+              Cargo / Rol <span class="text-[#3eb134]">*</span>
+            </label>
+            <span v-if="isClientUser" class="text-[11px] text-amber-400 font-medium">
+              Rol permanente
+            </span>
+          </div>
+
           <select
             id="role"
             v-model="role"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700 text-white text-sm focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors cursor-pointer"
+            :disabled="isClientUser"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700 text-white text-sm focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option
               v-for="opt in roleOptions"
@@ -200,6 +215,10 @@ const handleSubmit = () => {
               {{ opt.label }}
             </option>
           </select>
+          <p v-if="isClientUser" class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+            <v-icon icon="mdi-information-outline" size="14" class="text-amber-400 shrink-0" />
+            <span>Los usuarios de tipo cliente están vinculados a una empresa cliente. Su correo se sincroniza automáticamente con el contacto de la empresa.</span>
+          </p>
         </div>
 
         <!-- Tarjeta dinámica de permisos del rol -->
