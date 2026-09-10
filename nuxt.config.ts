@@ -23,6 +23,19 @@ export default defineNuxtConfig({
     strict: true
   },
 
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api',
+      authMode: process.env.NUXT_PUBLIC_AUTH_MODE || 'auto',
+      authEndpoints: {
+        login: process.env.NUXT_PUBLIC_AUTH_LOGIN_ENDPOINT || '/v1/auth/login',
+        register: process.env.NUXT_PUBLIC_AUTH_REGISTER_ENDPOINT || '/v1/auth/register',
+        me: process.env.NUXT_PUBLIC_AUTH_ME_ENDPOINT || '/v1/auth/me',
+        logout: process.env.NUXT_PUBLIC_AUTH_LOGOUT_ENDPOINT || '/v1/auth/logout'
+      }
+    }
+  },
+
   modules: [
     'vuetify-nuxt-module',
     '@nuxtjs/tailwindcss'

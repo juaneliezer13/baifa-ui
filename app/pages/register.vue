@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import AppLogo from '~/components/common/AppLogo.vue'
 
 definePageMeta({
@@ -10,36 +10,39 @@ useHead({
   title: 'Solicitar Acceso - Baifa'
 })
 
+const { register, isLoading, errorMessage, fieldErrors } = useAuth()
+
 const fullName = ref('')
 const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
 const showPassword = ref(false)
-const isLoading = ref(false)
-const errorMessage = ref('')
+const localError = ref('')
 const isSuccess = ref(false)
 
 const handleRegister = async () => {
   if (password.value !== passwordConfirm.value) {
-    errorMessage.value = 'Las contraseñas no coinciden.'
+    localError.value = 'Las contraseñas no coinciden.'
     return
   }
 
   if (password.value.length < 8) {
-    errorMessage.value = 'La contraseña debe tener al menos 8 caracteres.'
+    localError.value = 'La contraseña debe tener al menos 8 caracteres.'
     return
   }
 
-  errorMessage.value = ''
-  isLoading.value = true
+  localError.value = ''
 
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 600))
+  const result = await register({
+    name: fullName.value,
+    email: email.value,
+    password: password.value,
+    password_confirmation: passwordConfirm.value,
+    role: 'client'
+  })
+
+  if (result.success) {
     isSuccess.value = true
-  } catch (err: unknown) {
-    errorMessage.value = 'Ocurrió un error al enviar la solicitud.'
-  } finally {
-    isLoading.value = false
   }
 }
 </script>
@@ -89,11 +92,11 @@ const handleRegister = async () => {
     <form v-else class="space-y-4" @submit.prevent="handleRegister">
       <!-- Alerta de error -->
       <div
-        v-if="errorMessage"
+        v-if="localError || errorMessage"
         class="p-3 rounded-xl bg-red-950/50 border border-red-800/50 text-red-300 text-xs flex items-center gap-2"
       >
         <v-icon icon="mdi-alert-circle-outline" size="18" class="text-red-400 shrink-0" />
-        <span>{{ errorMessage }}</span>
+        <span>{{ localError || errorMessage }}</span>
       </div>
 
       <!-- Nombre Completo -->
@@ -108,7 +111,11 @@ const handleRegister = async () => {
           required
           placeholder="María González"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+          :class="{ 'border-red-500': fieldErrors?.name }"
         >
+        <p v-if="fieldErrors?.name" class="text-xs text-red-400 mt-1">
+          {{ fieldErrors.name.join(', ') }}
+        </p>
       </div>
 
       <!-- Correo Electrónico -->
@@ -123,7 +130,11 @@ const handleRegister = async () => {
           required
           placeholder="nombre@empresa.com"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+          :class="{ 'border-red-500': fieldErrors?.email }"
         >
+        <p v-if="fieldErrors?.email" class="text-xs text-red-400 mt-1">
+          {{ fieldErrors.email.join(', ') }}
+        </p>
       </div>
 
       <!-- Separador de Contraseña -->
@@ -147,6 +158,7 @@ const handleRegister = async () => {
             minlength="8"
             placeholder="Mínimo 8 caracteres"
             class="w-full px-3.5 pr-10 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+            :class="{ 'border-red-500': fieldErrors?.password }"
           >
           <button
             type="button"
@@ -156,6 +168,9 @@ const handleRegister = async () => {
             <v-icon :icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" size="18" />
           </button>
         </div>
+        <p v-if="fieldErrors?.password" class="text-xs text-red-400 mt-1">
+          {{ fieldErrors.password.join(', ') }}
+        </p>
       </div>
 
       <!-- Confirmar Contraseña -->
@@ -170,7 +185,11 @@ const handleRegister = async () => {
           required
           placeholder="Repite la contraseña"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+          :class="{ 'border-red-500': fieldErrors?.password_confirmation }"
         >
+        <p v-if="fieldErrors?.password_confirmation" class="text-xs text-red-400 mt-1">
+          {{ fieldErrors.password_confirmation.join(', ') }}
+        </p>
       </div>
 
       <!-- Botón Enviar Solicitud -->
@@ -187,7 +206,7 @@ const handleRegister = async () => {
             width="2"
             color="white"
           />
-          <span>{{ isLoading ? 'Enviando...' : 'Enviar solicitud de acceso' }}</span>
+          <span>{{ isLoading ? 'Enviando solicitud...' : 'Enviar solicitud de acceso' }}</span>
         </button>
       </div>
     </form>

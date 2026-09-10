@@ -10,14 +10,13 @@ useHead({
   title: 'Iniciar Sesión - Baifa'
 })
 
-const { login } = useAuth()
+const { login, isLoading, errorMessage, fieldErrors } = useAuth()
 
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const showPassword = ref(false)
-const isLoading = ref(false)
-const errorMessage = ref('')
+const localError = ref('')
 
 const autofillDemo = (type: 'admin' | 'baifa' = 'baifa') => {
   if (type === 'baifa') {
@@ -27,33 +26,25 @@ const autofillDemo = (type: 'admin' | 'baifa' = 'baifa') => {
     email.value = 'admin@admin'
     password.value = '12345678'
   }
-  errorMessage.value = ''
+  localError.value = ''
 }
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    errorMessage.value = 'Por favor ingresa tu correo y contraseña.'
+    localError.value = 'Por favor ingresa tu correo y contraseña.'
     return
   }
 
-  errorMessage.value = ''
-  isLoading.value = true
+  localError.value = ''
 
-  try {
-    const result = await login({
-      email: email.value,
-      password: password.value
-    })
+  const result = await login({
+    email: email.value,
+    password: password.value,
+    deviceName: 'web'
+  })
 
-    if (result.success) {
-      await navigateTo('/')
-    } else {
-      errorMessage.value = result.message || 'Credenciales inválidas.'
-    }
-  } catch (err: unknown) {
-    errorMessage.value = 'Ocurrió un error al intentar iniciar sesión.'
-  } finally {
-    isLoading.value = false
+  if (result.success) {
+    await navigateTo('/')
   }
 }
 </script>
@@ -77,11 +68,11 @@ const handleLogin = async () => {
 
     <!-- Alerta de error -->
     <div
-      v-if="errorMessage"
+      v-if="localError || errorMessage"
       class="mb-5 p-3 rounded-xl bg-red-950/50 border border-red-800/50 text-red-300 text-xs flex items-center gap-2"
     >
       <v-icon icon="mdi-alert-circle-outline" size="18" class="text-red-400 shrink-0" />
-      <span>{{ errorMessage }}</span>
+      <span>{{ localError || errorMessage }}</span>
     </div>
 
     <!-- Formulario -->
@@ -99,7 +90,11 @@ const handleLogin = async () => {
           autocomplete="username"
           placeholder="usuario@baifa.com.ve"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+          :class="{ 'border-red-500': fieldErrors?.email }"
         >
+        <p v-if="fieldErrors?.email" class="text-xs text-red-400 mt-1">
+          {{ fieldErrors.email.join(', ') }}
+        </p>
       </div>
 
       <!-- Campo Contraseña -->
@@ -116,6 +111,7 @@ const handleLogin = async () => {
             autocomplete="current-password"
             placeholder="••••••••"
             class="w-full px-3.5 pr-10 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+            :class="{ 'border-red-500': fieldErrors?.password }"
           >
           <button
             type="button"
@@ -125,6 +121,9 @@ const handleLogin = async () => {
             <v-icon :icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" size="18" />
           </button>
         </div>
+        <p v-if="fieldErrors?.password" class="text-xs text-red-400 mt-1">
+          {{ fieldErrors.password.join(', ') }}
+        </p>
       </div>
 
       <!-- Recordarme y ¿Olvidaste tu contraseña? -->
@@ -139,13 +138,13 @@ const handleLogin = async () => {
         </label>
         <NuxtLink
           to="/forgot-password"
-          class="text-[#3eb134] hover:text-[#349b2c] transition-colors font-medium"
+          class="text-[#3eb134] hover:text-[#349b2c] transition-colors underline-offset-2 hover:underline"
         >
           ¿Olvidaste tu contraseña?
         </NuxtLink>
       </div>
 
-      <!-- Botón Ingresar al sistema -->
+      <!-- Botón de Envío -->
       <div class="pt-2">
         <button
           type="submit"
@@ -159,31 +158,31 @@ const handleLogin = async () => {
             width="2"
             color="white"
           />
-          <span>{{ isLoading ? 'Ingresando...' : 'Ingresar al sistema' }}</span>
+          <span>{{ isLoading ? 'Iniciando sesión...' : 'Ingresar al sistema' }}</span>
         </button>
       </div>
     </form>
 
-    <!-- Credenciales de prueba -->
-    <div class="mt-6 p-4 rounded-xl bg-[#0b1f13]/60 border border-[#3eb134]/25 text-xs">
-      <div class="flex items-center justify-between mb-1.5">
-        <span class="font-semibold text-slate-200">Credenciales de prueba</span>
+    <!-- Credenciales Demo / Asistente Rápido -->
+    <div class="mt-6 p-3.5 rounded-xl bg-[#0e1726]/80 border border-slate-800/80 text-xs text-slate-400">
+      <div class="flex items-center justify-between mb-2">
+        <span class="font-medium text-slate-300">Credenciales de prueba</span>
         <button
           type="button"
-          class="text-[11px] font-semibold text-[#3eb134] hover:underline cursor-pointer"
+          class="text-[#3eb134] hover:text-[#349b2c] font-medium transition-colors cursor-pointer"
           @click="autofillDemo('baifa')"
         >
           Autocompletar
         </button>
       </div>
-      <div class="text-slate-400 space-y-0.5 text-[11px]">
-        <div>Email: <span class="text-[#3eb134] font-mono">admin@baifa.com.ve</span> (o admin@admin)</div>
-        <div>Contraseña: <span class="text-[#3eb134] font-mono">12345678</span></div>
+      <div class="space-y-1 font-mono text-[11px]">
+        <div>Email: <span class="text-slate-300">admin@baifa.com.ve</span> (o admin@admin)</div>
+        <div>Contraseña: <span class="text-slate-300">12345678</span></div>
       </div>
     </div>
 
-    <!-- Enlace Solicitar acceso -->
-    <div class="mt-6 text-center text-xs text-slate-400">
+    <!-- Enlace a Registro (Solicitar acceso) -->
+    <div class="mt-8 text-center text-xs text-slate-400">
       <span>¿No tienes cuenta?</span>
       <NuxtLink to="/register" class="text-[#3eb134] hover:text-[#349b2c] font-semibold ml-1.5 transition-colors">
         Solicitar acceso
