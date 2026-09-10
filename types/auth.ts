@@ -32,6 +32,10 @@ export interface RegisterData {
   email: string
   password: string
   password_confirmation: string
+  company_fiscal_name: string
+  company_short_name?: string
+  rif: string
+  phone?: string
   role?: string
 }
 

@@ -139,6 +139,10 @@ export class RestAuthAdapter implements AuthService {
       email: data.email.trim().toLowerCase(),
       password: data.password,
       password_confirmation: data.password_confirmation,
+      company_fiscal_name: data.company_fiscal_name.trim(),
+      company_short_name: data.company_short_name?.trim() || data.company_fiscal_name.trim(),
+      rif: data.rif.trim().toUpperCase(),
+      phone: data.phone?.trim() || undefined,
       role: 'client'
     }
 
