@@ -93,7 +93,7 @@ export const useApi = () => {
         headers: getHeaders(options.headers),
         body: options.body,
         params: options.params,
-        timeout: options.timeout || 4000
+        timeout: options.timeout || 15000
       })
 
       return response

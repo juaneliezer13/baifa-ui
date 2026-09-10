@@ -57,7 +57,7 @@ export class RestAuthAdapter implements AuthService {
       name: rawUser.name || 'Usuario',
       email: rawUser.email || '',
       role,
-      roleLabel: roleLabelMap[role] || (rawUser.roleLabel || 'Usuario'),
+      roleLabel: roleLabelMap[role] || rawUser.role_label || rawUser.roleLabel || 'Usuario',
       clientId: rawUser.client_id || rawUser.clientId || null,
       createdAt: rawUser.created_at || rawUser.createdAt
     }
