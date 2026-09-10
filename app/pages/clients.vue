@@ -35,7 +35,13 @@ const isDeleteModalOpen = ref(false)
 const selectedClient = ref<ClientItem | null>(null)
 const clientToDelete = ref<ClientItem | null>(null)
 
+const { user } = useAuth()
+
 onMounted(async () => {
+  if (user.value?.role === 'client') {
+    await navigateTo('/')
+    return
+  }
   await fetchClients()
 })
 

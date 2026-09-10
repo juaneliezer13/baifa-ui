@@ -12,6 +12,17 @@ export interface UserProfile {
   role: UserRole
   roleLabel: string
   clientId?: number | string | null
+  client?: {
+    id: number | string
+    company_fiscal_name: string
+    company_short_name: string
+    rif: string
+    office_phone?: string | null
+    contact_name?: string
+    contact_email?: string
+    contact_phone?: string | null
+    is_active?: boolean
+  } | null
   createdAt?: string
 }
 

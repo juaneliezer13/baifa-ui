@@ -12,6 +12,16 @@ const route = useRoute()
 const { user, logout } = useAuth()
 
 const navItems = computed<NavItem[]>(() => {
+  const isClient = user.value?.role === 'client'
+
+  if (isClient) {
+    return [
+      { label: 'Dashboard', to: '/', icon: 'mdi-view-dashboard-outline' },
+      { label: 'Rastrear', to: '/tracking', icon: 'mdi-magnify' },
+      { label: 'Generadores', to: '/generators', icon: 'mdi-flash-outline' },
+    ]
+  }
+
   const items: NavItem[] = [
     { label: 'Dashboard', to: '/', icon: 'mdi-view-dashboard-outline' },
     { label: 'Rastrear', to: '/tracking', icon: 'mdi-magnify' },

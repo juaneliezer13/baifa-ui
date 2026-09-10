@@ -102,11 +102,11 @@ const handleAction = (title: string) => {
         </div>
 
         <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight mb-2">
-          Bienvenido cliente
+          Bienvenido{{ user?.client?.company_short_name ? `, ${user.client.company_short_name}` : ' a BaiFa' }}
         </h1>
 
         <p class="text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
-          Hola <strong class="text-white">{{ user?.name || 'Estimado Cliente' }}</strong>, desde este panel puedes consultar tus compras, solicitar nuevos generadores y hacer seguimiento a tus equipos en operación con total confianza.
+          Hola <strong class="text-white">{{ user?.name || 'Estimado Cliente' }}</strong><span v-if="user?.client?.company_fiscal_name"> (<span class="text-[#3eb134] font-medium">{{ user.client.company_fiscal_name }}</span> · RIF: <span class="font-mono text-slate-300">{{ user.client.rif }}</span>)</span>, desde este panel puedes consultar tus compras, solicitar nuevos generadores y hacer seguimiento a tus equipos en operación con total confianza.
         </p>
       </div>
     </div>
