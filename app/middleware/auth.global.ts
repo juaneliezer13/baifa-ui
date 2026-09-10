@@ -13,4 +13,10 @@ export default defineNuxtRouteMiddleware((to) => {
   if (token.value && isPublicRoute) {
     return navigateTo('/')
   }
+
+  // Si es un cliente autenticado e intenta acceder a rutas del personal administrativo, redirigir al portal de clientes
+  const user = useCookie<any>('baifa_auth_user')
+  if (token.value && user.value?.role === 'client' && to.path !== '/') {
+    return navigateTo('/')
+  }
 })

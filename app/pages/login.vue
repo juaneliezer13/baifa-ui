@@ -18,12 +18,12 @@ const rememberMe = ref(false)
 const showPassword = ref(false)
 const localError = ref('')
 
-const autofillDemo = (type: 'admin' | 'baifa' = 'baifa') => {
-  if (type === 'baifa') {
-    email.value = 'admin@baifa.com.ve'
-    password.value = '12345678'
+const autofillDemo = (type: 'admin' | 'client' = 'admin') => {
+  if (type === 'client') {
+    email.value = 'cliente.real@empresa.com'
+    password.value = 'password123'
   } else {
-    email.value = 'admin@admin'
+    email.value = 'admin@baifa.com.ve'
     password.value = '12345678'
   }
   localError.value = ''
@@ -165,19 +165,28 @@ const handleLogin = async () => {
 
     <!-- Credenciales Demo / Asistente Rápido -->
     <div class="mt-6 p-3.5 rounded-xl bg-[#0e1726]/80 border border-slate-800/80 text-xs text-slate-400">
-      <div class="flex items-center justify-between mb-2">
-        <span class="font-medium text-slate-300">Credenciales de prueba</span>
-        <button
-          type="button"
-          class="text-[#3eb134] hover:text-[#349b2c] font-medium transition-colors cursor-pointer"
-          @click="autofillDemo('baifa')"
-        >
-          Autocompletar
-        </button>
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="font-semibold text-slate-300">Accesos de prueba rápidos</span>
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            class="text-[#3eb134] hover:text-[#349b2c] font-medium transition-colors cursor-pointer px-2 py-0.5 rounded-md bg-[#3eb134]/10 hover:bg-[#3eb134]/20 text-[11px]"
+            @click="autofillDemo('admin')"
+          >
+            Admin
+          </button>
+          <button
+            type="button"
+            class="text-sky-400 hover:text-sky-300 font-medium transition-colors cursor-pointer px-2 py-0.5 rounded-md bg-sky-950/50 hover:bg-sky-900/50 text-[11px]"
+            @click="autofillDemo('client')"
+          >
+            Cliente
+          </button>
+        </div>
       </div>
       <div class="space-y-1 font-mono text-[11px]">
-        <div>Email: <span class="text-slate-300">admin@baifa.com.ve</span> (o admin@admin)</div>
-        <div>Contraseña: <span class="text-slate-300">12345678</span></div>
+        <div>Admin: <span class="text-slate-300">admin@baifa.com.ve</span> (12345678)</div>
+        <div>Cliente: <span class="text-slate-300">cliente.real@empresa.com</span> (password123)</div>
       </div>
     </div>
 

@@ -1,6 +1,19 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import ClientDashboard from '~/components/client/ClientDashboard.vue'
 import BaseStatusBadge from '~/components/common/BaseStatusBadge.vue'
 import type { GeneratorStatus } from '~~/types/generator'
+
+definePageMeta({
+  layout: false
+})
+
+const { user } = useAuth()
+const isClient = computed(() => user.value?.role === 'client')
+
+useHead({
+  title: computed(() => isClient.value ? 'Portal de Clientes - Baifa' : 'Panel de Control - Baifa')
+})
 
 // Métricas KPI superiores
 interface KpiCard {
@@ -69,7 +82,12 @@ const systemUsers: SystemUser[] = [
 </script>
 
 <template>
-  <div class="space-y-8 max-w-7xl mx-auto">
+  <NuxtLayout :name="isClient ? 'client' : 'default'">
+    <!-- Portal de Autogestión exclusivo para Clientes -->
+    <ClientDashboard v-if="isClient" />
+
+    <!-- Panel de Control Operativo para Administradores y Empleados -->
+    <div v-else class="space-y-8 max-w-7xl mx-auto">
     <!-- Encabezado de Página -->
     <div>
       <h1 class="text-2xl lg:text-3xl font-bold text-white tracking-tight">
@@ -215,4 +233,5 @@ const systemUsers: SystemUser[] = [
       </div>
     </div>
   </div>
+  </NuxtLayout>
 </template>
