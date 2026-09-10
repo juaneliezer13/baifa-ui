@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 interface NavItem {
@@ -10,14 +11,23 @@ interface NavItem {
 const route = useRoute()
 const { user, logout } = useAuth()
 
-const navItems: NavItem[] = [
-  { label: 'Dashboard', to: '/', icon: 'mdi-view-dashboard-outline' },
-  { label: 'Rastrear', to: '/tracking', icon: 'mdi-magnify' },
-  { label: 'Generadores', to: '/generators', icon: 'mdi-flash-outline' },
-  { label: 'Clientes', to: '/clients', icon: 'mdi-account-group-outline' },
-  { label: 'Usuarios', to: '/users', icon: 'mdi-lock-outline' },
-  { label: 'Reportes', to: '/reports', icon: 'mdi-chart-bar' }
-]
+const navItems = computed<NavItem[]>(() => {
+  const items: NavItem[] = [
+    { label: 'Dashboard', to: '/', icon: 'mdi-view-dashboard-outline' },
+    { label: 'Rastrear', to: '/tracking', icon: 'mdi-magnify' },
+    { label: 'Generadores', to: '/generators', icon: 'mdi-flash-outline' },
+    { label: 'Clientes', to: '/clients', icon: 'mdi-account-group-outline' },
+  ]
+
+  // Solo administradores tienen acceso al módulo de Usuarios
+  if (user.value?.role === 'admin') {
+    items.push({ label: 'Usuarios', to: '/users', icon: 'mdi-lock-outline' })
+  }
+
+  items.push({ label: 'Reportes', to: '/reports', icon: 'mdi-chart-bar' })
+
+  return items
+})
 
 const isActive = (path: string): boolean => {
   if (path === '/') {

@@ -19,4 +19,9 @@ export default defineNuxtRouteMiddleware((to) => {
   if (token.value && user.value?.role === 'client' && to.path !== '/') {
     return navigateTo('/')
   }
+
+  // Si un usuario no administrador intenta acceder a la gestión de usuarios, redirigir al inicio
+  if (token.value && user.value?.role !== 'admin' && (to.path === '/users' || to.path.startsWith('/users/'))) {
+    return navigateTo('/')
+  }
 })
