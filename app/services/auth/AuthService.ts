@@ -3,7 +3,11 @@ import type {
   RegisterData,
   AuthResponse,
   RegisterResponse,
-  UserProfile
+  UserProfile,
+  ForgotPasswordData,
+  ForgotPasswordResponse,
+  ResetPasswordData,
+  ResetPasswordResponse
 } from '~~/types/auth'
 
 /**
@@ -31,4 +35,14 @@ export interface AuthService {
    * Cerrar la sesión activa e invalidar token si aplica
    */
   logout(): Promise<void>
+
+  /**
+   * Solicitar correo de restablecimiento de contraseña
+   */
+  forgotPassword(data: ForgotPasswordData): Promise<ForgotPasswordResponse>
+
+  /**
+   * Restablecer contraseña con token y nueva clave
+   */
+  resetPassword(data: ResetPasswordData): Promise<ResetPasswordResponse>
 }

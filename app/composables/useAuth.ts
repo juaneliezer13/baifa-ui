@@ -5,7 +5,11 @@ import type {
   LoginCredentials,
   RegisterData,
   AuthResponse,
-  RegisterResponse
+  RegisterResponse,
+  ForgotPasswordData,
+  ForgotPasswordResponse,
+  ResetPasswordData,
+  ResetPasswordResponse
 } from '~~/types/auth'
 
 export const useAuth = () => {
@@ -127,6 +131,60 @@ export const useAuth = () => {
     }
   }
 
+  /**
+   * Solicitar correo de recuperación de contraseña
+   */
+  const forgotPassword = async (data: ForgotPasswordData): Promise<ForgotPasswordResponse> => {
+    isLoading.value = true
+    errorMessage.value = ''
+    fieldErrors.value = undefined
+
+    try {
+      const response = await authService.forgotPassword(data)
+      if (!response.success) {
+        errorMessage.value = response.message || 'No fue posible procesar la solicitud.'
+        fieldErrors.value = response.errors
+      }
+      return response
+    } catch (err: unknown) {
+      const errorMsg = (err as any)?.message || 'Ocurrió un error inesperado.'
+      errorMessage.value = errorMsg
+      return {
+        success: false,
+        message: errorMsg
+      }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Restablecer contraseña con token y confirmación
+   */
+  const resetPassword = async (data: ResetPasswordData): Promise<ResetPasswordResponse> => {
+    isLoading.value = true
+    errorMessage.value = ''
+    fieldErrors.value = undefined
+
+    try {
+      const response = await authService.resetPassword(data)
+      if (!response.success) {
+        errorMessage.value = response.message || 'No fue posible restablecer la contraseña.'
+        fieldErrors.value = response.errors
+      }
+      return response
+    } catch (err: unknown) {
+      const errorMsg = (err as any)?.message || 'Ocurrió un error inesperado al restablecer la contraseña.'
+      errorMessage.value = errorMsg
+      return {
+        success: false,
+        message: errorMsg
+      }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     token,
     user,
@@ -137,6 +195,8 @@ export const useAuth = () => {
     login,
     register,
     logout,
-    fetchUser
+    fetchUser,
+    forgotPassword,
+    resetPassword
   }
 }

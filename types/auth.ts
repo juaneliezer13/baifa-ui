@@ -52,6 +52,31 @@ export interface RegisterResponse {
   errors?: Record<string, string[]>
 }
 
+export interface ForgotPasswordData {
+  email: string
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean
+  message: string
+  reset_url?: string
+  token?: string
+  errors?: Record<string, string[]>
+}
+
+export interface ResetPasswordData {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
+}
+
+export interface ResetPasswordResponse {
+  success: boolean
+  message: string
+  errors?: Record<string, string[]>
+}
+
 export interface ApiErrorResponse {
   message: string
   errors?: Record<string, string[]>
@@ -63,4 +88,6 @@ export interface AuthEndpointsConfig {
   register: string
   me: string
   logout: string
+  forgotPassword?: string
+  resetPassword?: string
 }

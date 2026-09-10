@@ -31,7 +31,9 @@ export default defineNuxtConfig({
         login: process.env.NUXT_PUBLIC_AUTH_LOGIN_ENDPOINT || '/v1/auth/login',
         register: process.env.NUXT_PUBLIC_AUTH_REGISTER_ENDPOINT || '/v1/auth/register',
         me: process.env.NUXT_PUBLIC_AUTH_ME_ENDPOINT || '/v1/auth/me',
-        logout: process.env.NUXT_PUBLIC_AUTH_LOGOUT_ENDPOINT || '/v1/auth/logout'
+        logout: process.env.NUXT_PUBLIC_AUTH_LOGOUT_ENDPOINT || '/v1/auth/logout',
+        forgotPassword: process.env.NUXT_PUBLIC_AUTH_FORGOT_PASSWORD_ENDPOINT || '/v1/auth/forgot-password',
+        resetPassword: process.env.NUXT_PUBLIC_AUTH_RESET_PASSWORD_ENDPOINT || '/v1/auth/reset-password'
       }
     }
   },

@@ -6,7 +6,11 @@ import type {
   RegisterResponse,
   UserProfile,
   ApiErrorResponse,
-  AuthEndpointsConfig
+  AuthEndpointsConfig,
+  ForgotPasswordData,
+  ForgotPasswordResponse,
+  ResetPasswordData,
+  ResetPasswordResponse
 } from '~~/types/auth'
 
 /**
@@ -195,6 +199,98 @@ export class RestAuthAdapter implements AuthService {
     } catch {
       // Si la revocación en el servidor falla (ej. ya caducó o no hay red),
       // continuamos para limpiar la sesión local en el cliente.
+    }
+  }
+
+  /**
+   * Solicita el restablecimiento de contraseña
+   */
+  async forgotPassword(data: ForgotPasswordData): Promise<ForgotPasswordResponse> {
+    const cleanEmail = data.email.trim().toLowerCase()
+
+    // 1. Si está en modo mock puro
+    if (this.authMode === 'mock') {
+      const isBlocked = cleanEmail === 'admin@baifa.com.ve' || cleanEmail === 'cliente.real@empresa.com'
+      if (isBlocked) {
+        return {
+          success: false,
+          message: 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.',
+          errors: {
+            email: ['Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.']
+          }
+        }
+      }
+      return {
+        success: true,
+        message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.',
+        reset_url: `http://localhost:3000/reset-password?token=mock_demo_token&email=${encodeURIComponent(cleanEmail)}`
+      }
+    }
+
+    // 2. Llamada REST al backend
+    try {
+      const endpoint = this.endpoints.forgotPassword || '/v1/auth/forgot-password'
+      const response = await this.api.post<any>(endpoint, { email: cleanEmail })
+      return {
+        success: true,
+        message: response.message || 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.',
+        reset_url: response.reset_url,
+        token: response.token
+      }
+    } catch (err: unknown) {
+      const apiErr = err as ApiErrorResponse
+      return {
+        success: false,
+        message: apiErr.message || 'No fue posible procesar la solicitud de recuperación.',
+        errors: apiErr.errors
+      }
+    }
+  }
+
+  /**
+   * Restablece la contraseña con token y nueva contraseña
+   */
+  async resetPassword(data: ResetPasswordData): Promise<ResetPasswordResponse> {
+    const cleanEmail = data.email.trim().toLowerCase()
+
+    // 1. Si está en modo mock puro
+    if (this.authMode === 'mock') {
+      const isBlocked = cleanEmail === 'admin@baifa.com.ve' || cleanEmail === 'cliente.real@empresa.com'
+      if (isBlocked) {
+        return {
+          success: false,
+          message: 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.',
+          errors: {
+            email: ['Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.']
+          }
+        }
+      }
+      return {
+        success: true,
+        message: 'Tu contraseña ha sido restablecida exitosamente (Demo).'
+      }
+    }
+
+    // 2. Llamada REST al backend
+    try {
+      const endpoint = this.endpoints.resetPassword || '/v1/auth/reset-password'
+      const response = await this.api.post<any>(endpoint, {
+        token: data.token,
+        email: cleanEmail,
+        password: data.password,
+        password_confirmation: data.password_confirmation
+      })
+      return {
+        success: true,
+        message: response.message || 'Tu contraseña ha sido restablecida exitosamente.'
+      }
+    } catch (err: unknown) {
+      const apiErr = err as ApiErrorResponse
+      return {
+        success: false,
+        message: apiErr.message || 'No fue posible restablecer la contraseña.',
+        errors: apiErr.errors
+      }
     }
   }
 
