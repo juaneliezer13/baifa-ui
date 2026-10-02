@@ -13,11 +13,16 @@ import type {
   UpdateGeneratorData
 } from '~~/types/generator'
 
-useHead({
-  title: 'Generadores - Baifa Power'
+definePageMeta({
+  layout: false
 })
 
 const { user } = useAuth()
+const isClient = computed(() => user.value?.role === 'client')
+
+useHead({
+  title: computed(() => isClient.value ? 'Mis Generadores - Baifa Power' : 'Generadores - Baifa Power')
+})
 const {
   generators,
   summary,
@@ -166,18 +171,21 @@ const handleConfirmDelete = async () => {
 </script>
 
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto pb-12">
-    <!-- Encabezado de la Sección -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h1 class="text-2xl lg:text-3xl font-bold text-white tracking-tight flex items-center gap-2.5">
-          <v-icon icon="mdi-flash" class="text-orange-500" size="28" />
-          <span>Generadores Eléctricos</span>
-        </h1>
-        <p class="text-sm text-slate-400 mt-1">
-          Catálogo de inventario, equipos asignados y control de estados de despacho
-        </p>
-      </div>
+  <NuxtLayout :name="isClient ? 'client' : 'default'">
+    <div class="space-y-6 max-w-7xl mx-auto pb-12">
+      <!-- Encabezado de la Sección -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl lg:text-3xl font-bold text-white tracking-tight flex items-center gap-2.5">
+            <v-icon icon="mdi-flash" class="text-orange-500" size="28" />
+            <span>{{ isClient ? 'Mis Generadores' : 'Generadores Eléctricos' }}</span>
+          </h1>
+          <p class="text-sm text-slate-400 mt-1">
+            {{ isClient
+              ? 'Plantas eléctricas y equipos industriales asignados a tu cuenta empresarial'
+              : 'Catálogo de inventario, equipos asignados y control de estados de despacho' }}
+          </p>
+        </div>
 
       <!-- Botón de Registro de Generador -->
       <button
@@ -421,7 +429,7 @@ const handleConfirmDelete = async () => {
             <tr class="border-b border-slate-800/80 bg-slate-900/60 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
               <th class="py-3 px-4">Equipo / Modelo</th>
               <th class="py-3 px-4">Serial de Fábrica</th>
-              <th class="py-3 px-4">Cliente Asignado</th>
+              <th v-if="!isClient" class="py-3 px-4">Cliente Asignado</th>
               <th class="py-3 px-4">Estado Logístico</th>
               <th class="py-3 px-4">ETA Estimada</th>
               <th v-if="canManage" class="py-3 px-4 text-right">Acciones</th>
@@ -483,7 +491,7 @@ const handleConfirmDelete = async () => {
               </td>
 
               <!-- Cliente Asignado -->
-              <td class="py-3 px-4">
+              <td v-if="!isClient" class="py-3 px-4">
                 <div v-if="gen.client" class="space-y-0.5">
                   <div class="font-medium text-white">
                     {{ gen.client.company_short_name }}
@@ -599,4 +607,5 @@ const handleConfirmDelete = async () => {
       </div>
     </v-dialog>
   </div>
+  </NuxtLayout>
 </template>

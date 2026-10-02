@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import AppLogo from '~/components/common/AppLogo.vue'
 
+const route = useRoute()
 const { user, logout } = useAuth()
 const isMenuOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
@@ -40,6 +41,35 @@ const handleLogout = async () => {
           Portal de Clientes
         </span>
       </div>
+
+      <!-- Enlaces de Navegación del Portal de Clientes -->
+      <nav class="hidden sm:flex items-center gap-2">
+        <NuxtLink
+          to="/"
+          class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+          :class="[
+            route.path === '/'
+              ? 'bg-[#3eb134]/15 text-[#3eb134] border border-[#3eb134]/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          ]"
+        >
+          <v-icon icon="mdi-view-dashboard-outline" size="16" />
+          <span>Dashboard</span>
+        </NuxtLink>
+
+        <NuxtLink
+          to="/generators"
+          class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+          :class="[
+            route.path.startsWith('/generators')
+              ? 'bg-[#3eb134]/15 text-[#3eb134] border border-[#3eb134]/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          ]"
+        >
+          <v-icon icon="mdi-flash-outline" size="16" />
+          <span>Mis Generadores</span>
+        </NuxtLink>
+      </nav>
 
       <!-- Menú de Usuario a la derecha -->
       <div ref="dropdownRef" class="relative">

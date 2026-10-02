@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useGenerators } from '~/composables/useGenerators'
 
 const { user } = useAuth()
+const { generators, fetchGenerators, isLoading, getStatusConfig } = useGenerators()
 
 const activeNotification = ref('')
 const serialQuery = ref('')
+
+onMounted(async () => {
+  await fetchGenerators()
+})
 
 const clientCards = [
   {
@@ -45,22 +51,44 @@ const clientCards = [
   }
 ]
 
-const recentEquipments = [
-  {
-    serial: 'GEN-2026-0037',
-    model: 'BF-C170S (170 kVA Soundproof)',
-    location: 'Sede Principal - Valencia',
-    status: 'Instalado / Operativo',
-    statusColor: 'text-emerald-400 bg-emerald-950/50 border-emerald-800/40'
-  },
-  {
-    serial: 'GEN-2026-0041',
-    model: 'BF-C250S (250 kVA Industrial)',
-    location: 'En Tránsito — Destino Caracas',
-    status: 'En Tránsito',
-    statusColor: 'text-sky-400 bg-sky-950/50 border-sky-800/40'
+const displayEquipments = computed(() => {
+  if (generators.value.length > 0) {
+    return generators.value.slice(0, 5).map((g) => {
+      const config = getStatusConfig(g.status)
+      return {
+        serial: g.serial_number,
+        model: g.model + (g.capacity_kva ? ` (${g.capacity_kva} kVA)` : ''),
+        location: g.notes || (g.estimated_arrival_date ? `ETA Estimada: ${g.estimated_arrival_date}` : 'Instalación del cliente'),
+        status: g.status_label || config.label,
+        statusColor: config.bgClass
+      }
+    })
   }
-]
+
+  return [
+    {
+      serial: 'GEN-2026-0037',
+      model: 'BF-C170S (170 kVA Soundproof)',
+      location: 'Sede Principal - Valencia',
+      status: 'Instalado y Operativo',
+      statusColor: 'text-emerald-400 bg-emerald-950/50 border-emerald-800/40'
+    },
+    {
+      serial: 'GEN-2026-0041',
+      model: 'BF-C250S (250 kVA Industrial)',
+      location: 'En Tránsito — Destino Caracas',
+      status: 'En Tránsito',
+      statusColor: 'text-sky-400 bg-sky-950/50 border-sky-800/40'
+    }
+  ]
+})
+
+const handleCardClick = (id: string, title: string) => {
+  if (id === 'catalog') {
+    return navigateTo('/generators')
+  }
+  handleAction(title)
+}
 
 const handleAction = (title: string) => {
   activeNotification.value = `Has seleccionado "${title}". Esta sección se encuentra en preparación para la próxima actualización.`
@@ -125,7 +153,7 @@ const handleAction = (title: string) => {
           v-for="card in clientCards"
           :key="card.id"
           class="bg-[#0f172a] border border-[#1e293b] hover:border-[#3eb134]/50 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 shadow-sm group cursor-pointer"
-          @click="handleAction(card.title)"
+          @click="handleCardClick(card.id, card.title)"
         >
           <div>
             <!-- Header de la tarjeta con icono y badge -->
@@ -170,7 +198,7 @@ const handleAction = (title: string) => {
         <button
           type="button"
           class="text-xs font-semibold text-[#3eb134] hover:text-[#349b2c] transition-colors cursor-pointer"
-          @click="handleAction('Ver generadores')"
+          @click="navigateTo('/generators')"
         >
           Ver todos
         </button>
@@ -178,7 +206,7 @@ const handleAction = (title: string) => {
 
       <div class="space-y-3">
         <div
-          v-for="item in recentEquipments"
+          v-for="item in displayEquipments"
           :key="item.serial"
           class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-[#161e31] border border-slate-800 hover:border-slate-700 transition-colors gap-3"
         >

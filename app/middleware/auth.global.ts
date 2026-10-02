@@ -14,9 +14,12 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/')
   }
 
-  // Si es un cliente autenticado e intenta acceder a rutas del personal administrativo, redirigir al portal de clientes
+  // Si es un cliente autenticado e intenta acceder a rutas exclusivas del personal administrativo, redirigir al dashboard
   const user = useCookie<any>('baifa_auth_user')
-  if (token.value && user.value?.role === 'client' && to.path !== '/') {
+  const staffOnlyRoutes = ['/clients', '/users', '/reports']
+  const isStaffRoute = staffOnlyRoutes.some((route) => to.path === route || to.path.startsWith(`${route}/`))
+
+  if (token.value && user.value?.role === 'client' && isStaffRoute) {
     return navigateTo('/')
   }
 
