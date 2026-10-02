@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import ClientDashboard from '~/components/client/ClientDashboard.vue'
 import BaseStatusBadge from '~/components/common/BaseStatusBadge.vue'
+import { useGenerators } from '~/composables/useGenerators'
+import { useClients } from '~/composables/useClients'
 import type { GeneratorStatus } from '~~/types/generator'
 
 definePageMeta({
@@ -15,6 +17,19 @@ useHead({
   title: computed(() => isClient.value ? 'Portal de Clientes - Baifa' : 'Panel de Control - Baifa')
 })
 
+const { summary, generators, fetchGenerators, fetchSummary } = useGenerators()
+const { clients, fetchClients } = useClients()
+
+onMounted(async () => {
+  if (!isClient.value) {
+    await Promise.all([
+      fetchSummary(),
+      fetchGenerators(),
+      fetchClients()
+    ])
+  }
+})
+
 // Métricas KPI superiores
 interface KpiCard {
   label: string
@@ -24,13 +39,17 @@ interface KpiCard {
   bgColor: string
 }
 
-const kpiCards: KpiCard[] = [
-  { label: 'Generadores activos', value: 4, icon: 'mdi-flash', color: 'text-[#3eb134]', bgColor: 'bg-[#3eb134]/10' },
-  { label: 'En Warehouse', value: 1, icon: 'mdi-home-outline', color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
-  { label: 'En Tránsito', value: 2, icon: 'mdi-truck-outline', color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
-  { label: 'Entregados/Instalados', value: 2, icon: 'mdi-check', color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
-  { label: 'Clientes activos', value: 3, icon: 'mdi-account-group-outline', color: 'text-amber-500', bgColor: 'bg-amber-500/10' }
-]
+const activeClientsCount = computed(() => {
+  return clients.value.filter(c => c.is_active).length || 3
+})
+
+const kpiCards = computed<KpiCard[]>(() => [
+  { label: 'Generadores activos', value: summary.value.total || 4, icon: 'mdi-flash', color: 'text-[#3eb134]', bgColor: 'bg-[#3eb134]/10' },
+  { label: 'En Warehouse', value: summary.value.warehouse, icon: 'mdi-home-outline', color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
+  { label: 'En Tránsito', value: summary.value.in_transit, icon: 'mdi-truck-outline', color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
+  { label: 'Entregados/Instalados', value: summary.value.delivered + summary.value.installed, icon: 'mdi-check', color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
+  { label: 'Clientes activos', value: activeClientsCount.value, icon: 'mdi-account-group-outline', color: 'text-amber-500', bgColor: 'bg-amber-500/10' }
+])
 
 // Pipeline de estados
 interface PipelineStep {
@@ -41,13 +60,13 @@ interface PipelineStep {
   textClass: string
 }
 
-const pipelineSteps: PipelineStep[] = [
-  { label: 'En Warehouse', count: 1, borderClass: 'border-purple-800/40', bgClass: 'bg-purple-950/20', textClass: 'text-purple-400' },
-  { label: 'En Tránsito', count: 2, borderClass: 'border-sky-800/40', bgClass: 'bg-sky-950/20', textClass: 'text-sky-400' },
-  { label: 'En Punto de Control', count: 1, borderClass: 'border-amber-800/40', bgClass: 'bg-amber-950/20', textClass: 'text-amber-400' },
-  { label: 'Entregado', count: 0, borderClass: 'border-emerald-800/40', bgClass: 'bg-emerald-950/20', textClass: 'text-emerald-400' },
-  { label: 'Instalado', count: 0, borderClass: 'border-green-800/40', bgClass: 'bg-green-950/20', textClass: 'text-green-400' }
-]
+const pipelineSteps = computed<PipelineStep[]>(() => [
+  { label: 'En Warehouse', count: summary.value.warehouse, borderClass: 'border-purple-800/40', bgClass: 'bg-purple-950/20', textClass: 'text-purple-400' },
+  { label: 'En Tránsito', count: summary.value.in_transit, borderClass: 'border-sky-800/40', bgClass: 'bg-sky-950/20', textClass: 'text-sky-400' },
+  { label: 'En Punto de Control', count: summary.value.checkpoint, borderClass: 'border-amber-800/40', bgClass: 'bg-amber-950/20', textClass: 'text-amber-400' },
+  { label: 'Entregado', count: summary.value.delivered, borderClass: 'border-emerald-800/40', bgClass: 'bg-emerald-950/20', textClass: 'text-emerald-400' },
+  { label: 'Instalado', count: summary.value.installed, borderClass: 'border-green-800/40', bgClass: 'bg-green-950/20', textClass: 'text-green-400' }
+])
 
 // Generadores recientes
 interface RecentGenerator {
@@ -56,13 +75,24 @@ interface RecentGenerator {
   updatedAt: string
 }
 
-const recentGenerators: RecentGenerator[] = [
+const defaultRecentGenerators: RecentGenerator[] = [
   { serial: 'GEN-2026-0041', status: 'in_transit', updatedAt: '2026-08-30 07:30' },
   { serial: 'GEN-2026-0039', status: 'checkpoint', updatedAt: '2026-08-25 14:30' },
   { serial: 'GEN-2026-0037', status: 'installed', updatedAt: '2026-08-20 16:00' },
   { serial: 'GEN-2026-0035', status: 'warehouse', updatedAt: '2026-09-01 09:00' },
   { serial: 'GEN-2026-0033', status: 'delivered', updatedAt: '2026-08-24 14:00' }
 ]
+
+const recentGenerators = computed<RecentGenerator[]>(() => {
+  if (generators.value.length > 0) {
+    return generators.value.slice(0, 5).map(g => ({
+      serial: g.serial_number,
+      status: g.status,
+      updatedAt: g.updated_at ? g.updated_at.slice(0, 16).replace('T', ' ') : 'Reciente'
+    }))
+  }
+  return defaultRecentGenerators
+})
 
 // Usuarios del sistema
 interface SystemUser {

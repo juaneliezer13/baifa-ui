@@ -9,12 +9,30 @@ export const useApi = () => {
   const config = useRuntimeConfig()
   const token = useCookie<string | null>('baifa_auth_token')
 
-  const baseURL = config.public.apiBase as string
+  const getResolvedBaseURL = (): string => {
+    const rawBase = (config.public.apiBase as string) || ''
 
-  const getHeaders = (customHeaders?: HeadersInit): HeadersInit => {
+    if (import.meta.client && typeof window !== 'undefined') {
+      const currentHost = window.location.hostname
+      // Si la URL configurada apunta a localhost/127.0.0.1 o está vacía, pero el navegador está en un host o IP remoto:
+      if ((!rawBase || rawBase.includes('127.0.0.1') || rawBase.includes('localhost')) && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+        const protocol = window.location.protocol
+        return `${protocol}//${currentHost}:8000/api`
+      }
+    }
+
+    return rawBase || 'http://127.0.0.1:8000/api'
+  }
+
+  const baseURL = getResolvedBaseURL()
+
+  const getHeaders = (customHeaders?: HeadersInit, isFormData = false): HeadersInit => {
     const headers: Record<string, string> = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
+      Accept: 'application/json'
+    }
+
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json'
     }
 
     if (token.value) {
@@ -88,9 +106,10 @@ export const useApi = () => {
   ): Promise<T> => {
     try {
       const fullUrl = buildUrl(endpoint)
+      const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
       const response = await $fetch<T>(fullUrl, {
         method: options.method || 'GET',
-        headers: getHeaders(options.headers),
+        headers: getHeaders(options.headers, isFormData),
         body: options.body,
         params: options.params,
         timeout: options.timeout || 20000

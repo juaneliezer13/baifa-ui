@@ -1,6 +1,30 @@
-﻿# 🤖 Directrices Técnicas, de Arquitectura y Estándar para Agentes de IA - Baifa UI (Frontend)
+# 🤖 Directrices Técnicas, de Arquitectura y Estándar para Agentes de IA - Baifa UI (Frontend)
 
 Este repositorio contiene la aplicación cliente web frontend **baifa-ui** para el sistema de rastreo y logística de generadores eléctricos (BaiFa Power Tracking). Cualquier modelo de lenguaje o agente autónomo (Antigravity, Claude, Cursor, LLMs) que trabaje en este código DEBE adherirse estrictamente a estas directrices.
+
+---
+
+## 🏭 0. Contexto de Negocio del Proyecto (BaiFa Power Tracking)
+
+* **Propósito:** Interfaz web para el rastreo logístico y gestión técnica de generadores eléctricos (BaiFa Power).
+* **Stack Principal:** Nuxt 4 + Vue 3 (Composition API `<script setup lang="ts">`) + Vuetify 3 + Tailwind CSS.
+* **Paleta y Tema:** Dark mode permanente (`#0b1120` fondo, `#0f172a` superficies, `#3eb134` verde corporativo BaiFa).
+* **Roles de Usuario (RBAC):**
+  - **`admin` (Superadministrador):** Panel completo, gestión de usuarios del sistema y directorio fiscal de clientes.
+  - **`manager` (Jefe / Gerente):** Supervisión operativa y métricas.
+  - **`employee` (Operador):** Actualización de estados e inspección de generadores.
+  - **`client` (Cliente Empresarial):** Portal de autogestión de pedidos y seguimiento de generadores adquiridos.
+* **Hoja de Ruta (5 Etapas):**
+  - **Etapa 1:** ✅ **Completada** — Login, Logout, Registro de cliente con RIF/Razón Social, Recuperación/Reset de contraseña, Módulo de Usuarios, Directorio Fiscal de Clientes.
+  - **Etapa 2:** ⏳ **Siguiente Hito** — Catálogo de Generadores, ficha técnica (kVA, diésel), seriales y galería.
+  - **Etapa 3:** 📋 **Planificado** — Trazabilidad y puntos de control (checkpoints) en tiempo real.
+  - **Etapa 4:** 📋 **Planificado** — Portal y dashboard para el cliente.
+  - **Etapa 5:** 📋 **Planificado** — Reportes y métricas.
+* **Documentación Centralizada del Proyecto:**
+  - Repositorio global de documentación: `../baifa-docs/`
+  - Reglas funcionales del frontend: `../baifa-docs/business/business_rules_frontend.md`
+  - Diseño y prototipo Figma: `../baifa-docs/business/diseno_figma.md`
+  - Capturas y pantallas: `../baifa-docs/prototypes-and-screenshots/`
 
 ---
 
@@ -128,8 +152,9 @@ export interface PaginatedResponse<T> {
 ---
 
 ## 🧭 5. Dominio de Negocio y Fuentes de Verdad
-* **Reglas Funcionales y Etapas de Entrega:** [docs/business_rules.md](docs/business_rules.md) (Etapas 1 a 5, roles, checkpoints y fichas de clientes).
-* **Especificación de Diseño y Prototipo en Figma:** [docs/business/diseno_figma.md](docs/business/diseno_figma.md) (Colores, estados, modales y estructura visual).
+* **Reglas Funcionales y Etapas de Entrega:** [../baifa-docs/business/business_rules_frontend.md](../baifa-docs/business/business_rules_frontend.md) (Etapas 1 a 5, roles, checkpoints y fichas de clientes).
+* **Especificación de Diseño y Prototipo en Figma:** [../baifa-docs/business/diseno_figma.md](../baifa-docs/business/diseno_figma.md) (Colores, estados, modales y estructura visual).
+* **Capturas y Prototipos:** [../baifa-docs/prototypes-and-screenshots/](../baifa-docs/prototypes-and-screenshots/) (50+ imágenes de referencia visual).
 
 ---
 
