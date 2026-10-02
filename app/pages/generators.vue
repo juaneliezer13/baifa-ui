@@ -37,7 +37,8 @@ const {
   fetchSummary,
   createGenerator,
   updateGenerator,
-  deleteGenerator
+  deleteGenerator,
+  addCheckpoint
 } = useGenerators()
 
 // Filtros y búsqueda
@@ -147,11 +148,16 @@ const handleSaveGenerator = async (payload: {
 const handleUpdateStatus = async (payload: {
   id: number
   status: GeneratorStatus
+  checkpoint_name?: string
   checkpointName?: string
+  event_date?: string
   notes?: string
 }) => {
-  const res = await updateGenerator(payload.id, {
+  const resolvedName = payload.checkpoint_name || payload.checkpointName || 'Actualización de Estado'
+  const res = await addCheckpoint(payload.id, {
     status: payload.status,
+    checkpoint_name: resolvedName,
+    event_date: payload.event_date,
     notes: payload.notes
   })
   if (res.success) {
@@ -432,7 +438,7 @@ const handleConfirmDelete = async () => {
               <th v-if="!isClient" class="py-3 px-4">Cliente Asignado</th>
               <th class="py-3 px-4">Estado Logístico</th>
               <th class="py-3 px-4">ETA Estimada</th>
-              <th v-if="canManage" class="py-3 px-4 text-right">Acciones</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/60 text-xs">
@@ -483,11 +489,16 @@ const handleConfirmDelete = async () => {
                 </div>
               </td>
 
-              <!-- Serial de Fábrica -->
+              <!-- Serial de Fábrica (con enlace directo a Tracking) -->
               <td class="py-3 px-4">
-                <span class="px-2.5 py-1 rounded-md bg-slate-800/90 border border-slate-700 text-slate-200 font-mono text-xs font-semibold">
-                  {{ gen.serial_number }}
-                </span>
+                <NuxtLink
+                  :to="`/tracking?serial=${gen.serial_number}`"
+                  title="Ver trazabilidad de este generador"
+                  class="px-2.5 py-1 rounded-md bg-slate-800/90 border border-slate-700 hover:border-orange-500/50 hover:bg-slate-800 text-slate-200 hover:text-orange-400 font-mono text-xs font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer group"
+                >
+                  <v-icon icon="mdi-crosshairs-gps" size="13" class="text-orange-500 group-hover:scale-110 transition-transform" />
+                  <span>{{ gen.serial_number }}</span>
+                </NuxtLink>
               </td>
 
               <!-- Cliente Asignado -->
@@ -521,37 +532,48 @@ const handleConfirmDelete = async () => {
               </td>
 
               <!-- Acciones -->
-              <td v-if="canManage" class="py-3 px-4 text-right">
+              <td class="py-3 px-4 text-right">
                 <div class="inline-flex items-center gap-1">
-                  <!-- Cambiar Estado (Checkpoint) -->
-                  <button
-                    type="button"
-                    title="Actualizar estado / Checkpoint"
-                    class="p-1.5 rounded-lg text-slate-400 hover:text-yellow-400 hover:bg-slate-800 transition-colors cursor-pointer"
-                    @click="openStatusModal(gen)"
+                  <!-- Rastrear Línea de Tiempo -->
+                  <NuxtLink
+                    :to="`/tracking?serial=${gen.serial_number}`"
+                    title="Ver línea de tiempo y trazabilidad"
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-orange-400 hover:bg-slate-800 transition-colors cursor-pointer"
                   >
-                    <v-icon icon="mdi-map-marker-path" size="18" />
-                  </button>
+                    <v-icon icon="mdi-timeline-text-outline" size="18" />
+                  </NuxtLink>
 
-                  <!-- Editar -->
-                  <button
-                    type="button"
-                    title="Editar ficha del generador"
-                    class="p-1.5 rounded-lg text-slate-400 hover:text-[#3eb134] hover:bg-slate-800 transition-colors cursor-pointer"
-                    @click="openEditModal(gen)"
-                  >
-                    <v-icon icon="mdi-pencil-outline" size="18" />
-                  </button>
+                  <template v-if="canManage">
+                    <!-- Cambiar Estado (Checkpoint) -->
+                    <button
+                      type="button"
+                      title="Actualizar estado / Checkpoint"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-yellow-400 hover:bg-slate-800 transition-colors cursor-pointer"
+                      @click="openStatusModal(gen)"
+                    >
+                      <v-icon icon="mdi-map-marker-path" size="18" />
+                    </button>
 
-                  <!-- Eliminar -->
-                  <button
-                    type="button"
-                    title="Eliminar generador"
-                    class="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors cursor-pointer"
-                    @click="openDeleteModal(gen)"
-                  >
-                    <v-icon icon="mdi-trash-can-outline" size="18" />
-                  </button>
+                    <!-- Editar -->
+                    <button
+                      type="button"
+                      title="Editar ficha del generador"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-[#3eb134] hover:bg-slate-800 transition-colors cursor-pointer"
+                      @click="openEditModal(gen)"
+                    >
+                      <v-icon icon="mdi-pencil-outline" size="18" />
+                    </button>
+
+                    <!-- Eliminar -->
+                    <button
+                      type="button"
+                      title="Eliminar generador"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors cursor-pointer"
+                      @click="openDeleteModal(gen)"
+                    >
+                      <v-icon icon="mdi-trash-can-outline" size="18" />
+                    </button>
+                  </template>
                 </div>
               </td>
             </tr>
