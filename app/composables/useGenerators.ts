@@ -5,7 +5,9 @@ import type {
   UpdateGeneratorData,
   GeneratorFilters,
   GeneratorSummaryMetrics,
-  GeneratorStatus
+  GeneratorStatus,
+  CreateCheckpointData,
+  CheckpointItem
 } from '~~/types/generator'
 import type { ApiErrorResponse } from '~~/types/auth'
 
@@ -315,6 +317,47 @@ export const useGenerators = () => {
     }
   }
 
+  /**
+   * Registra un nuevo punto de control (avance de ruta) y actualiza el estado del generador
+   */
+  const addCheckpoint = async (
+    generatorId: number,
+    data: CreateCheckpointData
+  ): Promise<{ success: boolean; message?: string; checkpoint?: CheckpointItem }> => {
+    isSaving.value = true
+    clearMessages()
+
+    try {
+      const response = await api.post<any>(`/v1/generators/${generatorId}/checkpoints`, {
+        status: data.status,
+        checkpoint_name: data.checkpoint_name,
+        event_date: data.event_date || undefined,
+        notes: data.notes || undefined
+      })
+
+      successMessage.value = response.message || 'Punto de control registrado exitosamente.'
+      await fetchGenerators()
+      await fetchSummary()
+
+      return {
+        success: true,
+        message: successMessage.value,
+        checkpoint: response.checkpoint
+      }
+    } catch (err: unknown) {
+      const apiErr = err as ApiErrorResponse
+      errorMessage.value = apiErr.message || 'No fue posible registrar el punto de control.'
+      fieldErrors.value = apiErr.errors
+
+      return {
+        success: false,
+        message: errorMessage.value
+      }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   return {
     generators,
     summary,
@@ -330,6 +373,7 @@ export const useGenerators = () => {
     fetchSummary,
     createGenerator,
     updateGenerator,
-    deleteGenerator
+    deleteGenerator,
+    addCheckpoint
   }
 }

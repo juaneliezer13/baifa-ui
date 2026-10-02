@@ -32,6 +32,8 @@ export interface GeneratorItem {
   photo_path?: string | null
   photo_url?: string | null
   notes?: string | null
+  checkpoints?: CheckpointItem[]
+  latest_checkpoint?: CheckpointItem | null
   created_at?: string
   updated_at?: string
 }
@@ -63,6 +65,29 @@ export interface GeneratorFilters {
   search?: string
   status?: 'all' | GeneratorStatus
   client_id?: number
+}
+
+export interface CheckpointItem {
+  id: number
+  generator_id: number
+  status: GeneratorStatus
+  status_label: string
+  status_color: string
+  checkpoint_name: string
+  event_date?: string | null
+  event_date_iso?: string | null
+  notes?: string | null
+  user_id?: number | null
+  changed_by: string
+  changed_by_role?: string
+  created_at?: string
+}
+
+export interface CreateCheckpointData {
+  status: GeneratorStatus
+  checkpoint_name: string
+  event_date?: string | null
+  notes?: string | null
 }
 
 export interface CheckpointEvent {

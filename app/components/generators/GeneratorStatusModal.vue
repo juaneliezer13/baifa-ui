@@ -10,19 +10,27 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
-  (e: 'updateStatus', payload: { id: number; status: GeneratorStatus; checkpointName?: string; notes?: string }): void
+  (e: 'updateStatus', payload: {
+    id: number
+    status: GeneratorStatus
+    checkpoint_name: string
+    checkpointName?: string
+    event_date?: string
+    notes?: string
+  }): void
 }>()
 
 const newStatus = ref<GeneratorStatus>('in_transit')
 const checkpointName = ref('')
+const eventDate = ref('')
 const notes = ref('')
 
-const statusOptions: { value: GeneratorStatus; label: string; icon: string }[] = [
-  { value: 'warehouse', label: 'En Almacén', icon: 'mdi-warehouse' },
-  { value: 'in_transit', label: 'En Tránsito', icon: 'mdi-truck-fast-outline' },
-  { value: 'checkpoint', label: 'En Punto de Control', icon: 'mdi-map-marker-radius-outline' },
-  { value: 'delivered', label: 'Entregado en Locación', icon: 'mdi-check-circle-outline' },
-  { value: 'installed', label: 'Instalado y Operativo', icon: 'mdi-lightning-bolt-circle' }
+const statusOptions: { value: GeneratorStatus; label: string; icon: string; defaultCheckpoint: string }[] = [
+  { value: 'warehouse', label: 'En Almacén', icon: 'mdi-warehouse', defaultCheckpoint: 'Almacén Central Valencia' },
+  { value: 'in_transit', label: 'En Tránsito', icon: 'mdi-truck-fast-outline', defaultCheckpoint: 'Despacho en Ruta' },
+  { value: 'checkpoint', label: 'En Punto de Control', icon: 'mdi-map-marker-radius-outline', defaultCheckpoint: 'Punto de Control en Ruta' },
+  { value: 'delivered', label: 'Entregado en Locación', icon: 'mdi-check-circle-outline', defaultCheckpoint: 'Entrega en Locación del Cliente' },
+  { value: 'installed', label: 'Instalado y Operativo', icon: 'mdi-lightning-bolt-circle', defaultCheckpoint: 'Instalación y Puesta en Servicio' }
 ]
 
 watch(
@@ -31,6 +39,7 @@ watch(
     if (isOpen && props.generator) {
       newStatus.value = props.generator.status || 'warehouse'
       checkpointName.value = ''
+      eventDate.value = ''
       notes.value = props.generator.notes || ''
     }
   },
@@ -44,10 +53,15 @@ const handleClose = () => {
 const handleSubmit = () => {
   if (!props.generator) return
 
+  const defaultOption = statusOptions.find(o => o.value === newStatus.value)
+  const resolvedName = checkpointName.value.trim() || defaultOption?.defaultCheckpoint || 'Punto de Control'
+
   emit('updateStatus', {
     id: props.generator.id,
     status: newStatus.value,
-    checkpointName: checkpointName.value.trim() || undefined,
+    checkpoint_name: resolvedName,
+    checkpointName: resolvedName,
+    event_date: eventDate.value ? eventDate.value.replace('T', ' ') : undefined,
     notes: notes.value.trim() || undefined
   })
 }
@@ -99,28 +113,42 @@ const handleSubmit = () => {
           </select>
         </div>
 
-        <!-- Nombre del Punto de Control (opcional si no aplica) -->
+        <!-- Nombre del Punto de Control -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">
-            Nombre del Punto de Control / Ubicación
+            Nombre del Punto de Control / Hito Logístico <span class="text-red-400">*</span>
           </label>
           <input
             v-model="checkpointName"
             type="text"
-            placeholder="EJ: Alcabala Guacara / Warehouse Valencia"
+            required
+            placeholder="Ej: Almacén Valencia, Alcabala Guacara, Puerto Cabello..."
             class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
           >
+        </div>
+
+        <!-- Fecha y Hora del Evento -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">
+            Fecha y Hora del Evento <span class="text-slate-500 font-normal">(opcional)</span>
+          </label>
+          <input
+            v-model="eventDate"
+            type="datetime-local"
+            class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
+          >
+          <p class="text-[11px] text-slate-500 mt-1">Si se omite, se registrará con la fecha y hora de este instante.</p>
         </div>
 
         <!-- Notas del cambio de estado -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">
-            Notas del Avance / Observaciones
+            Notas del Avance / Observaciones <span class="text-slate-500 font-normal">(opcional)</span>
           </label>
           <textarea
             v-model="notes"
             rows="3"
-            placeholder="Placa del transporte, nombre del chofer, incidencias..."
+            placeholder="Transportista, placa de vehículo, chofer, novedades en ruta..."
             class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all resize-none"
           />
         </div>
