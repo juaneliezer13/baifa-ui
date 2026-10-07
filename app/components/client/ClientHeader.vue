@@ -4,6 +4,7 @@ import AppLogo from '~/components/common/AppLogo.vue'
 
 const route = useRoute()
 const { user, logout } = useAuth()
+const { openWidget } = useSupportChat()
 const isMenuOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
@@ -24,6 +25,11 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('click', handleClickOutside)
 })
+
+const handleOpenSupport = () => {
+  isMenuOpen.value = false
+  openWidget()
+}
 
 const handleLogout = async () => {
   isMenuOpen.value = false
@@ -146,6 +152,16 @@ const handleLogout = async () => {
               <v-icon icon="mdi-account-outline" size="18" class="text-slate-400" />
               <span>Ver perfil</span>
             </a>
+
+            <!-- Opción Soporte Técnico -->
+            <button
+              type="button"
+              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer text-left"
+              @click="handleOpenSupport"
+            >
+              <v-icon icon="mdi-headset" size="18" class="text-[#3eb134]" />
+              <span>Soporte Técnico</span>
+            </button>
 
             <!-- Opción Cerrar Sesión -->
             <button

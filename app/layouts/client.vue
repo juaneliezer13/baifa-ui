@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ClientHeader from '~/components/client/ClientHeader.vue'
+import ClientSupportChat from '~/components/client/ClientSupportChat.vue'
 </script>
 
 <template>
@@ -17,6 +18,9 @@ import ClientHeader from '~/components/client/ClientHeader.vue'
       <footer class="border-t border-[#1e293b] py-6 text-center text-xs text-slate-500">
         © 2026 BaiFa Power · Todos los derechos reservados.
       </footer>
+
+      <!-- 4. Botón y Chat Flotante de Soporte Técnico (Exclusivo para el Cliente) -->
+      <ClientSupportChat />
     </div>
   </v-app>
 </template>
