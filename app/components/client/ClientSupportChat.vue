@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useSupportChat } from '~/composables/useSupportChat'
 
@@ -9,36 +9,38 @@ const isClient = computed(() => user.value?.role === 'client')
 const {
   isOpen,
   currentTicket,
-  isAgentTyping,
+  isLoading,
+  isSending,
+  errorMessage,
   hasActiveTicket,
   isAssigned,
   openWidget,
   closeWidget,
-  toggleWidget,
+  fetchActiveTicket,
   createTicket,
-  assignEmployee,
   sendMessage,
+  refreshMessages,
   resetTicket
 } = useSupportChat()
 
-// Estado local para el formulario de inicio
+// Formulario de apertura de ticket
 const ticketTitle = ref('')
-const ticketCategory = ref('Soporte Técnico')
+const ticketCategory = ref('soporte_tecnico')
 const ticketDescription = ref('')
 const formError = ref('')
 
-// Estado local para el input del chat
+// Entrada del chat
 const chatInputText = ref('')
 const messagesContainerRef = ref<HTMLElement | null>(null)
+let pollingTimer: any = null
 
 const categories = [
-  'Soporte Técnico',
-  'Logística y Despacho',
-  'Garantías y Mantenimiento',
-  'Otra Consulta'
+  { value: 'soporte_tecnico', label: 'Soporte Técnico' },
+  { value: 'logistica', label: 'Logística y Despacho' },
+  { value: 'garantias', label: 'Garantías y Mantenimiento' },
+  { value: 'otra_consulta', label: 'Otra Consulta' }
 ]
 
-// Auto-scroll del chat al llegar nuevos mensajes
 const scrollToBottom = async () => {
   await nextTick()
   if (messagesContainerRef.value) {
@@ -47,40 +49,39 @@ const scrollToBottom = async () => {
 }
 
 watch(
-  () => currentTicket.value?.messages.length,
+  () => currentTicket.value?.messages?.length,
   () => {
     scrollToBottom()
   }
 )
 
-watch(
-  () => isAgentTyping.value,
-  () => {
-    scrollToBottom()
-  }
-)
-
-const handleCreateTicket = () => {
+const handleCreateTicket = async () => {
   formError.value = ''
   if (!ticketTitle.value.trim()) {
     formError.value = 'Por favor ingresa un título o motivo para tu consulta.'
     return
   }
 
-  createTicket(ticketTitle.value, ticketCategory.value, ticketDescription.value)
-  ticketTitle.value = ''
-  ticketDescription.value = ''
+  const ok = await createTicket(ticketTitle.value, ticketCategory.value, ticketDescription.value)
+  if (ok) {
+    ticketTitle.value = ''
+    ticketDescription.value = ''
+  }
 }
 
-const handleSendMessage = () => {
-  if (!chatInputText.value.trim()) return
-  sendMessage(chatInputText.value)
+const handleSendMessage = async () => {
+  if (!chatInputText.value.trim() || isSending.value) return
+  const text = chatInputText.value
   chatInputText.value = ''
+  await sendMessage(text)
   scrollToBottom()
 }
 
-const handleSimulateAdminAssign = () => {
-  assignEmployee()
+const handleRefresh = async () => {
+  await fetchActiveTicket()
+  if (currentTicket.value) {
+    await refreshMessages()
+  }
 }
 
 const handleReset = () => {
@@ -89,6 +90,24 @@ const handleReset = () => {
   ticketTitle.value = ''
   ticketDescription.value = ''
 }
+
+onMounted(() => {
+  if (isClient.value) {
+    fetchActiveTicket()
+    // Sondeo suave cada 15 segundos si el widget está abierto
+    pollingTimer = setInterval(() => {
+      if (isOpen.value && currentTicket.value) {
+        refreshMessages()
+      }
+    }, 15000)
+  }
+})
+
+onUnmounted(() => {
+  if (pollingTimer) {
+    clearInterval(pollingTimer)
+  }
+})
 </script>
 
 <template>
@@ -96,7 +115,7 @@ const handleReset = () => {
   <aside
     v-if="isClient"
     class="font-sans select-none"
-    aria-label="Soporte y Mesa de Ayuda"
+    aria-label="Soporte y Helpdesk"
   >
     <!-- 1. Botón Flotante de Soporte (cuando la ventana está cerrada) -->
     <Transition
@@ -113,10 +132,8 @@ const handleReset = () => {
         class="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#3eb134] hover:bg-[#349e2e] active:scale-95 text-white font-semibold text-xs shadow-2xl shadow-[#3eb134]/40 border border-[#3eb134]/60 transition-all duration-200 cursor-pointer group"
         @click="openWidget"
       >
-        <!-- Icono con efecto glow -->
         <div class="relative flex items-center justify-center">
           <v-icon icon="mdi-headset" size="20" class="group-hover:rotate-12 transition-transform duration-200" />
-          <!-- Indicador de estado -->
           <span
             v-if="hasActiveTicket"
             class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ring-2 ring-[#0b1120]"
@@ -126,7 +143,6 @@ const handleReset = () => {
 
         <span class="tracking-wide">Soporte Técnico</span>
 
-        <!-- Badge si hay ticket en curso -->
         <span
           v-if="hasActiveTicket"
           class="ml-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-black/30 border border-white/20"
@@ -151,14 +167,13 @@ const handleReset = () => {
       >
         <!-- A. Encabezado Superior del Widget -->
         <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-[#122815] border-b border-[#1e293b] p-3.5 flex items-center justify-between shrink-0">
-          <!-- Info del Agente o de Soporte -->
           <div class="flex items-center gap-3 min-w-0">
             <!-- Avatar si hay operador asignado -->
             <div
-              v-if="isAssigned && currentTicket?.assignedAgent"
+              v-if="isAssigned && currentTicket?.assigned_agent"
               class="relative w-9 h-9 rounded-full bg-[#3eb134] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md shadow-[#3eb134]/30"
             >
-              {{ currentTicket.assignedAgent.avatarInitials }}
+              {{ currentTicket.assigned_agent.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2) }}
               <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0f172a]" />
             </div>
 
@@ -173,7 +188,7 @@ const handleReset = () => {
             <!-- Título y Estado -->
             <div class="min-w-0">
               <div class="text-xs font-bold text-white truncate flex items-center gap-1.5">
-                <span>{{ isAssigned ? currentTicket?.assignedAgent?.name : 'Soporte BaiFa Power' }}</span>
+                <span>{{ isAssigned ? currentTicket?.assigned_agent?.name : 'Soporte BaiFa Power' }}</span>
                 <span
                   v-if="hasActiveTicket"
                   class="text-[9px] px-1.5 py-0.2 rounded font-mono font-medium border"
@@ -184,7 +199,7 @@ const handleReset = () => {
               </div>
               <p class="text-[11px] text-slate-400 truncate mt-0.5">
                 {{ isAssigned
-                  ? (currentTicket?.assignedAgent?.role || 'Operador Asignado')
+                  ? (currentTicket?.assigned_agent?.role_label || 'Operador Asignado')
                   : 'Mesa de Ayuda y Consultas Técnicas' }}
               </p>
             </div>
@@ -192,18 +207,17 @@ const handleReset = () => {
 
           <!-- Acciones del Header -->
           <div class="flex items-center gap-1 shrink-0">
-            <!-- Botón para reiniciar / nuevo ticket -->
             <button
               v-if="hasActiveTicket"
               type="button"
               class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Nueva consulta o reiniciar ticket"
-              @click="handleReset"
+              title="Actualizar estado del ticket"
+              :disabled="isLoading"
+              @click="handleRefresh"
             >
-              <v-icon icon="mdi-refresh" size="18" />
+              <v-icon icon="mdi-refresh" size="18" :class="{ 'animate-spin': isLoading }" />
             </button>
 
-            <!-- Botón Cerrar / Minimizar -->
             <button
               type="button"
               class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
@@ -221,14 +235,13 @@ const handleReset = () => {
           class="flex-1 overflow-y-auto p-5 flex flex-col justify-between"
         >
           <div class="space-y-4">
-            <!-- Tarjeta de bienvenida -->
             <div class="p-3.5 rounded-xl bg-slate-800/40 border border-slate-700/50 flex items-start gap-3">
               <div class="w-8 h-8 rounded-lg bg-[#3eb134]/15 text-[#3eb134] flex items-center justify-center shrink-0 mt-0.5">
                 <v-icon icon="mdi-ticket-confirmation-outline" size="18" />
               </div>
               <div class="text-xs text-slate-300 leading-relaxed">
                 <span class="font-semibold text-white block mb-0.5">Bienvenido al Centro de Soporte</span>
-                Indícanos el título de tu consulta para abrir un ticket. Nuestro administrador asignará un empleado especializado desde el Helpdesk para atenderte por chat en vivo.
+                Indícanos el título de tu consulta para abrir un ticket en base de datos. Nuestro equipo asignará un operador técnico especializado desde el Helpdesk interno para atenderte.
               </div>
             </div>
 
@@ -242,20 +255,20 @@ const handleReset = () => {
                 <div class="grid grid-cols-2 gap-2">
                   <button
                     v-for="cat in categories"
-                    :key="cat"
+                    :key="cat.value"
                     type="button"
                     class="px-2.5 py-2 rounded-xl text-[11px] font-medium border text-left transition-all cursor-pointer truncate"
-                    :class="ticketCategory === cat
+                    :class="ticketCategory === cat.value
                       ? 'bg-[#3eb134]/20 border-[#3eb134] text-white shadow-sm'
                       : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-300'"
-                    @click="ticketCategory = cat"
+                    @click="ticketCategory = cat.value"
                   >
-                    {{ cat }}
+                    {{ cat.label }}
                   </button>
                 </div>
               </div>
 
-              <!-- Título de la consulta (Requerido por el usuario) -->
+              <!-- Título de la consulta -->
               <div>
                 <label for="support-ticket-title" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                   Título de tu Consulta <span class="text-emerald-400">*</span>
@@ -264,7 +277,7 @@ const handleReset = () => {
                   id="support-ticket-title"
                   v-model="ticketTitle"
                   type="text"
-                  placeholder="Ej: Duda sobre entrega de generador GEN-2026-0041"
+                  placeholder="Ej: Falla de arranque en generador 250 kVA..."
                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
                   autofocus
                 />
@@ -284,29 +297,33 @@ const handleReset = () => {
                 />
               </div>
 
-              <!-- Mensaje de error de validación -->
+              <!-- Error -->
               <div
-                v-if="formError"
+                v-if="formError || errorMessage"
                 class="p-2.5 rounded-lg bg-red-950/50 border border-red-800/60 text-red-300 text-xs flex items-center gap-2"
               >
                 <v-icon icon="mdi-alert-circle-outline" size="16" class="text-red-400 shrink-0" />
-                <span>{{ formError }}</span>
+                <span>{{ formError || errorMessage }}</span>
               </div>
 
               <!-- Botón Generar Ticket -->
               <button
                 type="submit"
-                class="w-full py-3 rounded-xl font-semibold text-xs text-white bg-[#3eb134] hover:bg-[#349e2e] active:scale-[0.99] transition-all shadow-lg shadow-[#3eb134]/30 cursor-pointer flex items-center justify-center gap-2"
+                :disabled="isLoading"
+                class="w-full py-3 rounded-xl font-semibold text-xs text-white bg-[#3eb134] hover:bg-[#349e2e] active:scale-[0.99] transition-all shadow-lg shadow-[#3eb134]/30 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <v-icon icon="mdi-send-check-outline" size="16" />
-                <span>Iniciar Consulta y Generar Ticket</span>
+                <v-icon v-if="!isLoading" icon="mdi-send-check-outline" size="16" />
+                <v-icon v-else icon="mdi-loading" size="16" class="animate-spin" />
+                <span>{{ isLoading ? 'Registrando Ticket...' : 'Iniciar Consulta y Generar Ticket' }}</span>
               </button>
             </form>
           </div>
 
-          <!-- Nota al pie informativa -->
-          <div class="pt-3 border-t border-slate-800/80 text-center text-[10px] text-slate-500">
-            Soporte oficial BaiFa Power · Atención técnica especializada
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Soporte oficial BaiFa Power</span>
+            <NuxtLink to="/my-tickets" class="text-[#3eb134] hover:underline" @click="closeWidget">
+              Ver mis consultas anteriores
+            </NuxtLink>
           </div>
         </div>
 
@@ -316,14 +333,13 @@ const handleReset = () => {
           class="flex-1 overflow-y-auto p-5 flex flex-col justify-between"
         >
           <div class="space-y-4">
-            <!-- Tarjeta del Ticket Generado -->
             <div class="p-4 rounded-xl bg-[#0b1120] border border-amber-800/40 space-y-2.5 shadow-md">
               <div class="flex items-center justify-between">
                 <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800/60">
                   {{ currentTicket?.code }}
                 </span>
                 <span class="text-[10px] text-slate-400">
-                  {{ currentTicket?.createdAt }}
+                  {{ currentTicket?.created_at ? currentTicket.created_at.slice(0, 16).replace('T', ' ') : '' }}
                 </span>
               </div>
 
@@ -337,11 +353,11 @@ const handleReset = () => {
               </div>
 
               <div class="text-[11px] text-slate-400">
-                <span class="text-slate-500">Área:</span> {{ currentTicket?.category }}
+                <span class="text-slate-500">Área:</span> {{ currentTicket?.category_label }}
               </div>
             </div>
 
-            <!-- Estado de Espera / Asignación en Helpdesk -->
+            <!-- Estado de Espera en Tickera -->
             <div class="p-4 rounded-xl bg-slate-800/40 border border-slate-700/60 text-center space-y-3">
               <div class="relative w-12 h-12 mx-auto flex items-center justify-center">
                 <div class="absolute inset-0 rounded-full bg-amber-400/20 animate-ping" />
@@ -352,35 +368,24 @@ const handleReset = () => {
 
               <div>
                 <h3 class="text-xs font-bold text-white">
-                  Esperando Asignación de Operador
+                  Ticket Registrado en Helpdesk
                 </h3>
                 <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                  Tu ticket ha sido registrado en el Helpdesk Interno. El administrador está asignando a un operador técnico. En cuanto se asigne, el chat se abrirá automáticamente.
+                  Tu solicitud está en cola de atención. El administrador asignará un operador técnico disponible (o un operador tomará tu ticket). En cuanto sea asignado, la sala de chat en vivo se activará aquí.
                 </p>
               </div>
-            </div>
 
-            <!-- Panel de Simulación para Probar el Flujo Estático -->
-            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-800/40 space-y-2.5">
-              <div class="flex items-center gap-2 text-[11px] font-semibold text-emerald-400">
-                <v-icon icon="mdi-shield-account-outline" size="16" />
-                <span>Simulación de Asignación por Admin (Demo Front)</span>
-              </div>
-              <p class="text-[10px] text-slate-400 leading-snug">
-                Haz clic en el botón siguiente para simular que el administrador asignó a un empleado desde el Helpdesk interno:
-              </p>
               <button
                 type="button"
-                class="w-full py-2.5 px-3 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] transition-all shadow-md shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-2"
-                @click="handleSimulateAdminAssign"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-amber-300 bg-amber-950/60 border border-amber-800/60 hover:bg-amber-900/60 transition-colors cursor-pointer"
+                @click="handleRefresh"
               >
-                <v-icon icon="mdi-account-check" size="16" />
-                <span>Asignar Operador y Abrir Chat</span>
+                <v-icon icon="mdi-refresh" size="14" :class="{ 'animate-spin': isLoading }" />
+                <span>Comprobar asignación</span>
               </button>
             </div>
           </div>
 
-          <!-- Opciones inferiores -->
           <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
             <button
               type="button"
@@ -389,13 +394,13 @@ const handleReset = () => {
             >
               Minimizar ventana
             </button>
-            <button
-              type="button"
-              class="text-red-400 hover:text-red-300 transition-colors cursor-pointer"
-              @click="handleReset"
+            <NuxtLink
+              to="/my-tickets"
+              class="text-[#3eb134] hover:underline"
+              @click="closeWidget"
             >
-              Cancelar consulta
-            </button>
+              Mis Consultas
+            </NuxtLink>
           </div>
         </div>
 
@@ -404,18 +409,18 @@ const handleReset = () => {
           v-else-if="isAssigned"
           class="flex-1 flex flex-col min-h-0 overflow-hidden"
         >
-          <!-- Barra de información del caso -->
+          <!-- Barra de información -->
           <div class="px-3.5 py-2 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between text-[11px] shrink-0">
             <span class="text-slate-400 truncate max-w-[240px]">
               <span class="text-slate-500">Caso:</span> {{ currentTicket?.title }}
             </span>
             <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full shrink-0">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Chat Activo
+              Chat en Vivo
             </span>
           </div>
 
-          <!-- Contenedor scrollable de Mensajes -->
+          <!-- Mensajes -->
           <div
             ref="messagesContainerRef"
             class="flex-1 overflow-y-auto p-4 space-y-3"
@@ -425,74 +430,58 @@ const handleReset = () => {
               :key="msg.id"
               class="flex flex-col"
               :class="{
-                'items-end': msg.sender === 'client',
-                'items-start': msg.sender === 'agent',
-                'items-center my-1': msg.sender === 'system'
+                'items-end': msg.sender_type === 'client',
+                'items-start': msg.sender_type === 'agent',
+                'items-center my-1': msg.sender_type === 'system'
               }"
             >
               <!-- Mensaje del Sistema -->
               <div
-                v-if="msg.sender === 'system'"
+                v-if="msg.sender_type === 'system'"
                 class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-[10px] text-slate-300 max-w-[90%] text-center leading-relaxed"
               >
-                {{ msg.text }}
+                {{ msg.message }}
               </div>
 
-              <!-- Mensaje del Cliente o del Agente -->
+              <!-- Mensaje Cliente o Agente -->
               <div
                 v-else
                 class="max-w-[85%] flex flex-col"
-                :class="msg.sender === 'client' ? 'items-end' : 'items-start'"
+                :class="msg.sender_type === 'client' ? 'items-end' : 'items-start'"
               >
-                <!-- Nombre del remitente -->
                 <span class="text-[10px] text-slate-400 mb-1 px-1 font-medium">
-                  {{ msg.senderName }}
+                  {{ msg.sender_name }}
                 </span>
 
-                <!-- Burbuja de texto -->
                 <div
                   class="px-3.5 py-2.5 text-xs rounded-2xl leading-relaxed shadow-sm break-words"
-                  :class="msg.sender === 'client'
+                  :class="msg.sender_type === 'client'
                     ? 'bg-[#3eb134] text-white rounded-tr-xs'
                     : 'bg-[#1e293b] text-slate-100 border border-slate-700/80 rounded-tl-xs'"
                 >
-                  {{ msg.text }}
+                  {{ msg.message }}
                 </div>
 
-                <!-- Hora del mensaje -->
                 <span class="text-[9px] text-slate-500 mt-1 px-1 font-mono">
-                  {{ msg.timestamp }}
+                  {{ msg.timestamp || (msg.created_at ? msg.created_at.slice(11, 16) : '') }}
                 </span>
               </div>
             </div>
-
-            <!-- Indicador de "Escribiendo..." del agente -->
-            <div
-              v-if="isAgentTyping"
-              class="flex items-center gap-2 text-slate-400 text-[11px] px-2 py-1"
-            >
-              <div class="flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay: 0ms;" />
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay: 150ms;" />
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay: 300ms;" />
-              </div>
-              <span>{{ currentTicket?.assignedAgent?.name || 'Operador' }} está escribiendo...</span>
-            </div>
           </div>
 
-          <!-- Barra Inferior de Entrada de Mensaje -->
+          <!-- Input Inferior -->
           <footer class="p-3 bg-slate-900 border-t border-slate-800 shrink-0">
             <form class="flex items-center gap-2" @submit.prevent="handleSendMessage">
               <input
                 v-model="chatInputText"
                 type="text"
-                placeholder="Escribe tu mensaje aquí..."
+                placeholder="Escribe tu mensaje al operador..."
                 class="flex-1 px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
               />
               <button
                 type="submit"
                 class="p-2.5 rounded-xl bg-[#3eb134] hover:bg-[#349e2e] active:scale-95 text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                :disabled="!chatInputText.trim()"
+                :disabled="!chatInputText.trim() || isSending"
                 title="Enviar mensaje"
               >
                 <v-icon icon="mdi-send" size="16" />

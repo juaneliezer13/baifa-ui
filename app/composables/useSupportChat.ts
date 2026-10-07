@@ -1,175 +1,161 @@
 import { ref, computed } from 'vue'
-import type { SupportTicket, SupportMessage, SupportAgent } from '~~/types/support'
-
-// Agente de soporte predeterminado para simulación en frontend
-const DEFAULT_AGENT: SupportAgent = {
-  id: 104,
-  name: 'Carlos Ramírez',
-  role: 'Especialista Técnico Helpdesk',
-  avatarInitials: 'CR',
-  status: 'online'
-}
-
-// Respuestas simuladas contextuales para soporte estático
-const MOCK_AGENT_REPLIES = [
-  'Comprendo perfectamente tu situación. Estoy revisando la telemetría y los registros asociados en el sistema.',
-  'Gracias por los detalles. He tomado nota y estamos coordinando con el equipo de operaciones en sitio.',
-  '¿El generador presenta alguna luz indicadora o alarma en el panel Deep Sea / SmartGen?',
-  'Excelente, procedo a registrar este apunte en la bitácora técnica de tu equipo.'
-]
+import { useApi } from '~/composables/useApi'
+import type { SupportTicket, SupportMessage, CreateTicketDTO } from '~~/types/support'
 
 export const useSupportChat = () => {
-  // Estado global reactivo para el cliente durante la sesión
+  const api = useApi()
+
+  // Estado global reactivo durante la sesión
   const isOpen = useState<boolean>('support_chat_open', () => false)
   const currentTicket = useState<SupportTicket | null>('support_current_ticket', () => null)
-  const isAgentTyping = useState<boolean>('support_agent_typing', () => false)
-  const isAutoAssigning = useState<boolean>('support_auto_assigning', () => false)
+  const isLoading = useState<boolean>('support_loading', () => false)
+  const isSending = useState<boolean>('support_sending', () => false)
+  const errorMessage = useState<string | null>('support_error', () => null)
 
-  const hasActiveTicket = computed(() => currentTicket.value !== null)
-  const isAssigned = computed(() => {
-    return currentTicket.value?.status === 'assigned' || currentTicket.value?.status === 'in_progress'
+  const hasActiveTicket = computed(() => {
+    return currentTicket.value !== null &&
+      (currentTicket.value.status === 'pending' || currentTicket.value.status === 'in_progress')
   })
 
-  const openWidget = () => {
+  const isAssigned = computed(() => {
+    return currentTicket.value?.status === 'in_progress' && currentTicket.value?.assigned_agent !== null
+  })
+
+  const openWidget = async () => {
     isOpen.value = true
+    await fetchActiveTicket()
   }
 
   const closeWidget = () => {
     isOpen.value = false
   }
 
-  const toggleWidget = () => {
-    isOpen.value = !isOpen.value
-  }
-
-  const formatCurrentTime = (): string => {
-    const now = new Date()
-    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
-
-  /**
-   * Crea un ticket de soporte internamente a partir del título suministrado.
-   * Inicialmente queda en estado 'pending_assignment' a la espera de que el
-   * helpdesk interno del administrador le asigne un operador.
-   */
-  const createTicket = (title: string, category = 'General', description = '') => {
-    const ticketCode = `TKT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
-    const timestamp = formatCurrentTime()
-
-    const initialMessages: SupportMessage[] = [
-      {
-        id: `msg-${Date.now()}-1`,
-        sender: 'system',
-        senderName: 'Sistema BaiFa',
-        text: `Ticket #${ticketCode} creado con éxito: "${title.trim()}". Tu solicitud está en cola del Helpdesk Interno.`,
-        timestamp
-      }
-    ]
-
-    currentTicket.value = {
-      id: `ticket-${Date.now()}`,
-      code: ticketCode,
-      title: title.trim(),
-      category,
-      description: description.trim(),
-      status: 'pending_assignment',
-      clientName: 'Cliente BaiFa',
-      createdAt: timestamp,
-      messages: initialMessages
+  const toggleWidget = async () => {
+    if (!isOpen.value) {
+      await openWidget()
+    } else {
+      closeWidget()
     }
   }
 
   /**
-   * Simula la asignación de un empleado/operador al ticket por parte del Helpdesk / Admin.
-   * Una vez asignado, se abre la sala de chat activa con el empleado.
+   * Consulta el ticket activo en curso del cliente desde el backend.
    */
-  const assignEmployee = (agent: SupportAgent = DEFAULT_AGENT) => {
+  const fetchActiveTicket = async () => {
+    isLoading.value = true
+    errorMessage.value = null
+    try {
+      const response = await api.get<{
+        data: SupportTicket | null
+        has_active: boolean
+      }>('/v1/support/active-ticket')
+
+      currentTicket.value = response.data || null
+    } catch (err: any) {
+      // Si falla la conexión, no bloquear al usuario
+      errorMessage.value = err.message || 'No fue posible sincronizar el ticket activo.'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Genera un nuevo ticket de soporte en la base de datos a través de la API.
+   */
+  const createTicket = async (title: string, category = 'soporte_tecnico', description = ''): Promise<boolean> => {
+    isLoading.value = true
+    errorMessage.value = null
+    try {
+      const payload: CreateTicketDTO = {
+        title: title.trim(),
+        category,
+        description: description.trim() || undefined
+      }
+
+      const response = await api.post<{ data: SupportTicket }>('/v1/support/tickets', payload)
+      currentTicket.value = response.data
+      return true
+    } catch (err: any) {
+      errorMessage.value = err.message || 'No se pudo generar el ticket de soporte.'
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Envía un mensaje desde el cliente al chat del ticket activo en backend.
+   */
+  const sendMessage = async (text: string): Promise<boolean> => {
+    if (!currentTicket.value || !text.trim()) return false
+
+    isSending.value = true
+    errorMessage.value = null
+    try {
+      const response = await api.post<{ data: SupportMessage }>(
+        `/v1/support/tickets/${currentTicket.value.id}/messages`,
+        { message: text.trim() }
+      )
+
+      if (!currentTicket.value.messages) {
+        currentTicket.value.messages = []
+      }
+
+      if (response.data) {
+        currentTicket.value.messages.push(response.data)
+      }
+
+      return true
+    } catch (err: any) {
+      errorMessage.value = err.message || 'Error al enviar el mensaje al chat.'
+      return false
+    } finally {
+      isSending.value = false
+    }
+  }
+
+  /**
+   * Refresca los mensajes del ticket activo
+   */
+  const refreshMessages = async () => {
     if (!currentTicket.value) return
 
-    currentTicket.value.status = 'assigned'
-    currentTicket.value.assignedAgent = agent
+    try {
+      const response = await api.get<{ data: SupportMessage[] }>(
+        `/v1/support/tickets/${currentTicket.value.id}/messages`
+      )
 
-    const timestamp = formatCurrentTime()
-
-    // Notificación del sistema de operador asignado
-    currentTicket.value.messages.push({
-      id: `msg-${Date.now()}-assign`,
-      sender: 'system',
-      senderName: 'Helpdesk',
-      text: `${agent.name} (${agent.role}) ha sido asignado a tu consulta. El chat en vivo está ahora abierto.`,
-      timestamp
-    })
-
-    // Saludo inicial del agente
-    isAgentTyping.value = true
-    setTimeout(() => {
       if (currentTicket.value) {
-        currentTicket.value.messages.push({
-          id: `msg-${Date.now()}-welcome`,
-          sender: 'agent',
-          senderName: agent.name,
-          text: `¡Hola! Soy ${agent.name} de soporte técnico BaiFa Power. Estoy atendiendo tu caso sobre "${currentTicket.value.title}". ¿Podrías indicarme más detalles o número de serial de tu equipo si aplica?`,
-          timestamp: formatCurrentTime()
-        })
+        currentTicket.value.messages = response.data || []
       }
-      isAgentTyping.value = false
-    }, 1000)
+    } catch (err) {
+      // Silencioso en sondeos periódicos
+    }
   }
 
   /**
-   * Envía un mensaje desde el cliente al chat activo.
-   */
-  const sendMessage = (text: string) => {
-    if (!currentTicket.value || !text.trim() || !isAssigned.value) return
-
-    const timestamp = formatCurrentTime()
-    currentTicket.value.messages.push({
-      id: `msg-${Date.now()}`,
-      sender: 'client',
-      senderName: 'Tú',
-      text: text.trim(),
-      timestamp
-    })
-
-    // Simulación de respuesta interactiva del agente en frontend
-    isAgentTyping.value = true
-    setTimeout(() => {
-      if (currentTicket.value && isAssigned.value) {
-        const randomReply = MOCK_AGENT_REPLIES[Math.floor(Math.random() * MOCK_AGENT_REPLIES.length)]
-        currentTicket.value.messages.push({
-          id: `msg-${Date.now()}-reply`,
-          sender: 'agent',
-          senderName: currentTicket.value.assignedAgent?.name || 'Soporte',
-          text: randomReply,
-          timestamp: formatCurrentTime()
-        })
-      }
-      isAgentTyping.value = false
-    }, 1800)
-  }
-
-  /**
-   * Reinicia o finaliza el ticket actual para permitir una nueva consulta.
+   * Reinicia la vista para permitir crear un nuevo ticket (si el actual no está activo).
    */
   const resetTicket = () => {
     currentTicket.value = null
-    isAgentTyping.value = false
-    isAutoAssigning.value = false
+    errorMessage.value = null
   }
 
   return {
     isOpen,
     currentTicket,
-    isAgentTyping,
-    isAutoAssigning,
+    isLoading,
+    isSending,
+    errorMessage,
     hasActiveTicket,
     isAssigned,
     openWidget,
     closeWidget,
     toggleWidget,
+    fetchActiveTicket,
     createTicket,
-    assignEmployee,
     sendMessage,
+    refreshMessages,
     resetTicket
   }
 }

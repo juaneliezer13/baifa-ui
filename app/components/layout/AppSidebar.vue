@@ -27,6 +27,7 @@ const navItems = computed<NavItem[]>(() => {
     { label: 'Rastrear', to: '/tracking', icon: 'mdi-magnify' },
     { label: 'Generadores', to: '/generators', icon: 'mdi-flash-outline' },
     { label: 'Clientes', to: '/clients', icon: 'mdi-account-group-outline' },
+    { label: 'Tickera', to: '/tickets', icon: 'mdi-ticket-confirmation-outline' },
   ]
 
   // Solo administradores tienen acceso al módulo de Usuarios
