@@ -15,6 +15,21 @@ definePageMeta({
 
 const route = useRoute()
 const { user } = useAuth()
+
+const {
+  trackedGenerator,
+  checkpoints,
+  isLoading,
+  isSavingCheckpoint,
+  searchError,
+  successMessage,
+  clearMessages,
+  trackBySerial,
+  addCheckpoint
+} = useTracking()
+
+const { getStatusConfig } = useGenerators()
+
 const isClient = computed(() => user.value?.role === 'client')
 const canManage = computed(() => ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
 const isGuest = computed(() => !user.value)
@@ -46,20 +61,6 @@ useHead({
     return isClient.value ? 'Rastrear Mi Generador - Baifa Power' : 'Rastrear Generador - Baifa Power'
   })
 })
-
-const {
-  trackedGenerator,
-  checkpoints,
-  isLoading,
-  isSavingCheckpoint,
-  searchError,
-  successMessage,
-  clearMessages,
-  trackBySerial,
-  addCheckpoint
-} = useTracking()
-
-const { getStatusConfig } = useGenerators()
 
 // Estado local
 const searchInput = ref('')
