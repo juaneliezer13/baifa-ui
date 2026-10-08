@@ -1,5 +1,6 @@
 {
   "name": "baifa-ui",
+  "version": "1.0.3",
   "type": "module",
   "private": true,
   "scripts": {
