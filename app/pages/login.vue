@@ -29,6 +29,8 @@ const autofillDemo = (type: 'admin' | 'client' = 'admin') => {
   localError.value = ''
 }
 
+const route = useRoute()
+
 const handleLogin = async () => {
   if (!email.value || !password.value) {
     localError.value = 'Por favor ingresa tu correo y contraseña.'
@@ -44,7 +46,8 @@ const handleLogin = async () => {
   })
 
   if (result.success) {
-    await navigateTo('/')
+    const redirectPath = (route.query.redirect as string) || '/'
+    await navigateTo(redirectPath)
   }
 }
 </script>

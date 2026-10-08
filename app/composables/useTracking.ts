@@ -77,6 +77,8 @@ export const useTracking = () => {
         photo_path: g.photo_path || null,
         photo_url: g.photo_url || null,
         notes: g.notes || null,
+        is_public_view: Boolean(g.is_public_view),
+        requires_auth_for_details: Boolean(g.requires_auth_for_details),
         created_at: g.created_at || '',
         updated_at: g.updated_at || '',
         checkpoints: Array.isArray(g.checkpoints) ? g.checkpoints : []

@@ -1,16 +1,23 @@
 export default defineNuxtRouteMiddleware((to) => {
   const token = useCookie<string | null>('baifa_auth_token')
 
-  const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
-  const isPublicRoute = publicRoutes.some((route) => to.path === route || to.path.startsWith(`${route}/`))
+  // Rutas exclusivas de invitados (si el usuario ya inició sesión, redirigir al dashboard)
+  const guestOnlyRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
+  const isGuestOnlyRoute = guestOnlyRoutes.some((route) => to.path === route || to.path.startsWith(`${route}/`))
 
-  // Si no está autenticado y la ruta no es pública, redirigir al login
-  if (!token.value && !isPublicRoute) {
-    return navigateTo('/login')
+  // Rutas públicas híbridas (accesibles tanto para invitados como para usuarios con sesión activa)
+  const isHybridPublicRoute = to.path === '/tracking' || to.path.startsWith('/tracking/')
+
+  // Si no está autenticado y la ruta no es de invitados ni pública híbrida, redirigir al login con redirect
+  if (!token.value && !isGuestOnlyRoute && !isHybridPublicRoute) {
+    return navigateTo({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    })
   }
 
-  // Si ya está autenticado e intenta acceder al login o registro, redirigir al dashboard
-  if (token.value && isPublicRoute) {
+  // Si ya está autenticado e intenta acceder a rutas exclusivas de invitados, redirigir al dashboard
+  if (token.value && isGuestOnlyRoute) {
     return navigateTo('/')
   }
 

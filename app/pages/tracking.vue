@@ -9,16 +9,42 @@ import GeneratorStatusBadge from '~/components/generators/GeneratorStatusBadge.v
 import type { GeneratorStatus, CreateCheckpointData } from '~~/types/generator'
 
 definePageMeta({
-  layout: false
+  layout: false,
+  alias: ['/tracking/:serial']
 })
 
 const route = useRoute()
 const { user } = useAuth()
 const isClient = computed(() => user.value?.role === 'client')
 const canManage = computed(() => ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+const isGuest = computed(() => !user.value)
+const isPublicView = computed(() => isGuest.value || Boolean(trackedGenerator.value?.is_public_view))
+
+const currentLayout = computed(() => {
+  if (isGuest.value) return 'public'
+  return isClient.value ? 'client' : 'default'
+})
+
+const loginRedirectUrl = computed(() => {
+  const currentPath = route.fullPath || '/tracking'
+  return `/login?redirect=${encodeURIComponent(currentPath)}`
+})
+
+const getUrlSerial = (): string => {
+  const param = route.params.serial
+  if (typeof param === 'string' && param.trim()) return param.trim()
+  const query = route.query.serial
+  if (typeof query === 'string' && query.trim()) return query.trim()
+  return ''
+}
 
 useHead({
-  title: computed(() => isClient.value ? 'Rastrear Mi Generador - Baifa Power' : 'Rastrear Generador - Baifa Power')
+  title: computed(() => {
+    if (trackedGenerator.value?.serial_number) {
+      return `Rastreo ${trackedGenerator.value.serial_number} - Baifa Power`
+    }
+    return isClient.value ? 'Rastrear Mi Generador - Baifa Power' : 'Rastrear Generador - Baifa Power'
+  })
 })
 
 const {
@@ -56,9 +82,9 @@ const selectExample = async (serial: string) => {
   await handleSearch(serial)
 }
 
-// Búsqueda automática si viene en query params (?serial=XYZ)
+// Búsqueda automática si viene en URL (/tracking/:serial o ?serial=XYZ)
 onMounted(async () => {
-  const initialSerial = route.query.serial as string | undefined
+  const initialSerial = getUrlSerial()
   if (initialSerial) {
     searchInput.value = initialSerial
     await handleSearch(initialSerial)
@@ -66,9 +92,10 @@ onMounted(async () => {
 })
 
 watch(
-  () => route.query.serial,
-  async (newSerial) => {
-    if (newSerial && typeof newSerial === 'string' && newSerial !== searchInput.value) {
+  () => [route.params.serial, route.query.serial],
+  async () => {
+    const newSerial = getUrlSerial()
+    if (newSerial && newSerial !== searchInput.value) {
       searchInput.value = newSerial
       await handleSearch(newSerial)
     }
@@ -151,17 +178,18 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
 </script>
 
 <template>
-  <NuxtLayout :name="isClient ? 'client' : 'default'">
+  <NuxtLayout :name="currentLayout">
     <div class="space-y-6 max-w-7xl mx-auto pb-12">
       <!-- Encabezado de la Sección -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-2xl lg:text-3xl font-bold text-white tracking-tight flex items-center gap-2.5">
             <v-icon icon="mdi-crosshairs-gps" class="text-orange-500" size="28" />
-            <span>Rastrear Generador</span>
+            <span>{{ isGuest ? 'Consulta de Rastreo Pública' : (isClient ? 'Rastrear Mi Generador' : 'Rastrear Generador') }}</span>
           </h1>
           <p class="text-sm text-slate-400 mt-1">
-            Consulta el estado, avance de ruta y bitácora de un generador por su serial de fábrica
+            <span v-if="isGuest">Rastreo en tiempo real y estado logístico del generador por serial de fábrica</span>
+            <span v-else>Consulta el estado, avance de ruta y bitácora de un generador por su serial de fábrica</span>
           </p>
         </div>
       </div>
@@ -301,6 +329,40 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
 
       <!-- Ficha del Generador y Línea de Tiempo (Cuando se encuentra el generador) -->
       <div v-if="trackedGenerator && !isLoading" class="space-y-6">
+        <!-- Banner Superior Informativo de Consulta Pública (Estilo MRW) -->
+        <div
+          v-if="isPublicView"
+          class="bg-[#0f172a] border border-orange-500/30 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div class="flex items-start sm:items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 text-orange-400 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <v-icon icon="mdi-shield-check-outline" size="22" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-orange-400 uppercase tracking-wider">
+                  Modo Consulta Pública (Huésped)
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                  Estilo MRW
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">
+                Estás visualizando los datos logísticos esenciales del generador. La información fiscal del cliente y la bitácora extendida están protegidas.
+              </p>
+            </div>
+          </div>
+
+          <NuxtLink
+            v-if="!user"
+            :to="loginRedirectUrl"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-colors shrink-0 shadow-md shadow-orange-500/20 cursor-pointer"
+          >
+            <v-icon icon="mdi-login" size="15" />
+            <span>Iniciar Sesión</span>
+          </NuxtLink>
+        </div>
+
         <!-- 1. Tarjeta Resumen del Generador (Acorde a Figma 07_rastrear_timeline_detalle.png) -->
         <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 shadow-xl relative overflow-hidden">
           <!-- Brillo decorativo superior -->
@@ -332,7 +394,7 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
 
               <!-- Botón Operativo para registrar nuevo Checkpoint -->
               <button
-                v-if="canManage"
+                v-if="canManage && !isPublicView"
                 type="button"
                 class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-semibold text-xs text-white bg-[#3eb134] hover:bg-[#349e2e] active:scale-[0.99] transition-all shadow-md shadow-[#3eb134]/20 cursor-pointer"
                 @click="handleOpenStatusModal"
@@ -346,13 +408,23 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
           <!-- Métricas y Datos Clave en 3-4 Columnas -->
           <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-slate-800/80">
             <!-- Cliente -->
-            <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
+            <div v-if="!isPublicView" class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
               <span class="text-[11px] font-medium text-slate-400 block">Cliente Asignado</span>
               <div class="font-bold text-white text-sm mt-1 truncate">
                 {{ trackedGenerator.client?.company_short_name || trackedGenerator.client?.company_fiscal_name || 'En stock Baifa' }}
               </div>
               <div class="text-[11px] text-slate-500 font-mono mt-0.5">
                 {{ trackedGenerator.client?.rif || 'Inventario central' }}
+              </div>
+            </div>
+            <div v-else class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
+              <span class="text-[11px] font-medium text-slate-400 block">Cliente / Destino</span>
+              <div class="font-bold text-slate-300 text-sm mt-1 flex items-center gap-1.5">
+                <v-icon icon="mdi-lock-outline" size="15" class="text-amber-400" />
+                <span>Privado / Protegido</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5">
+                Inicia sesión para ver razón social
               </div>
             </div>
 
@@ -366,14 +438,22 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
               <div class="text-[11px] text-slate-500 mt-0.5">Fecha prevista de entrega</div>
             </div>
 
-            <!-- Registrado -->
-            <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
+            <!-- Registrado / Seguridad Logística -->
+            <div v-if="!isPublicView" class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
               <span class="text-[11px] font-medium text-slate-400 block">Registrado en Sistema</span>
               <div class="font-bold text-white text-sm font-mono mt-1 flex items-center gap-1.5">
                 <v-icon icon="mdi-check-decagram-outline" size="16" class="text-emerald-400" />
                 <span>{{ formatSimpleDate(trackedGenerator.created_at) }}</span>
               </div>
               <div class="text-[11px] text-slate-500 mt-0.5">Ingreso al catálogo</div>
+            </div>
+            <div v-else class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
+              <span class="text-[11px] font-medium text-slate-400 block">Seguridad Logística</span>
+              <div class="font-bold text-emerald-400 text-sm mt-1 flex items-center gap-1.5">
+                <v-icon icon="mdi-shield-check" size="16" />
+                <span>Trazabilidad Activa</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5">Monitoreo en tiempo real</div>
             </div>
 
             <!-- Capacidad Eléctrica -->
@@ -437,7 +517,7 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
                 <span>Serial:</span>
                 <span class="font-mono text-orange-400 font-semibold">{{ trackedGenerator.serial_number }}</span>
               </div>
-              <div v-if="trackedGenerator.notes" class="pt-2 text-[11px] text-slate-400 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+              <div v-if="trackedGenerator.notes && !isPublicView" class="pt-2 text-[11px] text-slate-400 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
                 <span class="font-semibold text-slate-300 block mb-0.5">Observación de inventario:</span>
                 {{ trackedGenerator.notes }}
               </div>
@@ -467,7 +547,7 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
                 Los eventos de traslado, alcabalas y puntos de llegada aparecerán ordenados cronológicamente aquí.
               </p>
               <button
-                v-if="canManage"
+                v-if="canManage && !isPublicView"
                 type="button"
                 class="mt-4 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#3eb134] hover:bg-[#349e2e] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 @click="handleOpenStatusModal"
@@ -521,10 +601,14 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
 
                   <!-- Pie del Evento: Usuario Responsable y Certificación Inmutable -->
                   <div class="mt-3 pt-2.5 border-t border-slate-800/40 flex items-center justify-between text-[11px] text-slate-400">
-                    <div class="flex items-center gap-1.5">
+                    <div v-if="cp.changed_by" class="flex items-center gap-1.5">
                       <v-icon icon="mdi-account-circle-outline" size="14" class="text-slate-500" />
                       <span>por <strong class="text-slate-300">{{ cp.changed_by }}</strong></span>
                       <span v-if="cp.changed_by_role" class="text-slate-500">• {{ cp.changed_by_role }}</span>
+                    </div>
+                    <div v-else class="flex items-center gap-1.5 text-slate-400">
+                      <v-icon icon="mdi-shield-check-outline" size="14" class="text-emerald-400" />
+                      <span>Verificado por <strong class="text-slate-300">Baifa Power Logistics</strong></span>
                     </div>
 
                     <div class="flex items-center gap-1 text-[10px] text-slate-500" title="Registro inmutable de bitácora">
@@ -534,6 +618,48 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Banner Inferior de Llamado a la Acción (Estilo MRW) -->
+        <div
+          v-if="isPublicView"
+          class="bg-gradient-to-br from-[#0f172a] via-[#111c35] to-[#0f172a] border border-orange-500/30 rounded-2xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl"
+        >
+          <!-- Brillo ambiental de fondo -->
+          <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div class="relative max-w-2xl mx-auto space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-orange-500/15 border border-orange-500/30 text-orange-400 flex items-center justify-center mx-auto shadow-inner">
+              <v-icon icon="mdi-shield-account-outline" size="30" />
+            </div>
+
+            <div>
+              <h3 class="text-xl font-extrabold text-white tracking-tight">
+                ¿Deseas consultar la información completa de este equipo?
+              </h3>
+              <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                Para visualizar la razón social del cliente, RIF fiscal, datos de contacto del despacho, documentos técnicos de aduana y el historial extendido de operarios de la bitácora, inicia sesión con una cuenta autorizada en la plataforma.
+              </p>
+            </div>
+
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <NuxtLink
+                :to="loginRedirectUrl"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-500/25 cursor-pointer"
+              >
+                <v-icon icon="mdi-login" size="18" />
+                <span>Iniciar sesión para ver más detalles</span>
+              </NuxtLink>
+
+              <NuxtLink
+                to="/register"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:text-white bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 transition-colors cursor-pointer"
+              >
+                <v-icon icon="mdi-account-plus-outline" size="18" />
+                <span>Crear cuenta</span>
+              </NuxtLink>
             </div>
           </div>
         </div>

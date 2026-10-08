@@ -34,6 +34,8 @@ export interface GeneratorItem {
   notes?: string | null
   checkpoints?: CheckpointItem[]
   latest_checkpoint?: CheckpointItem | null
+  is_public_view?: boolean
+  requires_auth_for_details?: boolean
   created_at?: string
   updated_at?: string
 }
@@ -78,8 +80,9 @@ export interface CheckpointItem {
   event_date_iso?: string | null
   notes?: string | null
   user_id?: number | null
-  changed_by: string
+  changed_by?: string
   changed_by_role?: string
+  is_verified?: boolean
   created_at?: string
 }
 
