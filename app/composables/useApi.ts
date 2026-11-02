@@ -13,15 +13,24 @@ export const useApi = () => {
     const rawBase = (config.public.apiBase as string) || ''
 
     if (import.meta.client && typeof window !== 'undefined') {
+      // Prioridad 1: Configuración en caliente desde /config.js para cPanel / Producción
+      const runtimeConfigWindow = (window as any).__BAIFA_CONFIG__
+      if (runtimeConfigWindow?.apiBase && typeof runtimeConfigWindow.apiBase === 'string' && runtimeConfigWindow.apiBase.trim()) {
+        return runtimeConfigWindow.apiBase.trim()
+      }
+
       const currentHost = window.location.hostname
       // Si la URL configurada apunta a localhost/127.0.0.1 o está vacía, pero el navegador está en un host o IP remoto:
       if ((!rawBase || rawBase.includes('127.0.0.1') || rawBase.includes('localhost')) && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
         const protocol = window.location.protocol
-        return `${protocol}//${currentHost}:8000/api`
+        if (currentHost.includes('baifa.batdev.lat')) {
+          return `${protocol}//baifa-api.batdev.lat:11001/api`
+        }
+        return `${protocol}//${currentHost}:11001/api`
       }
     }
 
-    return rawBase || 'http://127.0.0.1:8000/api'
+    return rawBase || 'http://127.0.0.1:11001/api'
   }
 
   const baseURL = getResolvedBaseURL()

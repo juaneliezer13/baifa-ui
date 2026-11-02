@@ -15,6 +15,9 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap' }
+      ],
+      script: [
+        { src: '/config.js' }
       ]
     }
   },
@@ -25,7 +28,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:8000/api',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:11001/api',
       authMode: process.env.NUXT_PUBLIC_AUTH_MODE || 'auto',
       authEndpoints: {
         login: process.env.NUXT_PUBLIC_AUTH_LOGIN_ENDPOINT || '/v1/auth/login',

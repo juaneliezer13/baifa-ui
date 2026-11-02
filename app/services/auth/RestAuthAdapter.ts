@@ -228,7 +228,7 @@ export class RestAuthAdapter implements AuthService {
       return {
         success: true,
         message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.',
-        reset_url: `http://localhost:3000/reset-password?token=mock_demo_token&email=${encodeURIComponent(cleanEmail)}`
+        reset_url: `http://localhost:12001/reset-password?token=mock_demo_token&email=${encodeURIComponent(cleanEmail)}`
       }
     }
 
