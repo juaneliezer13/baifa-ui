@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:11001/api',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://baifa-api.batdev.lat/api',
       authMode: process.env.NUXT_PUBLIC_AUTH_MODE || 'auto',
       authEndpoints: {
         login: process.env.NUXT_PUBLIC_AUTH_LOGIN_ENDPOINT || '/v1/auth/login',

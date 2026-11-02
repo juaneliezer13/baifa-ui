@@ -13,24 +13,34 @@ export const useApi = () => {
     const rawBase = (config.public.apiBase as string) || ''
 
     if (import.meta.client && typeof window !== 'undefined') {
+      const currentHost = window.location.hostname
+
+      // Si el navegador está en localhost o 127.0.0.1, usamos la API local en puerto 11001
+      if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+        return 'http://127.0.0.1:11001/api'
+      }
+
       // Prioridad 1: Configuración en caliente desde /config.js para cPanel / Producción
       const runtimeConfigWindow = (window as any).__BAIFA_CONFIG__
       if (runtimeConfigWindow?.apiBase && typeof runtimeConfigWindow.apiBase === 'string' && runtimeConfigWindow.apiBase.trim()) {
-        return runtimeConfigWindow.apiBase.trim()
+        const configuredUrl = runtimeConfigWindow.apiBase.trim()
+        if (!configuredUrl.includes('localhost') && !configuredUrl.includes('127.0.0.1')) {
+          return configuredUrl
+        }
       }
 
-      const currentHost = window.location.hostname
-      // Si la URL configurada apunta a localhost/127.0.0.1 o está vacía, pero el navegador está en un host o IP remoto:
-      if ((!rawBase || rawBase.includes('127.0.0.1') || rawBase.includes('localhost')) && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-        const protocol = window.location.protocol
-        if (currentHost.includes('baifa.batdev.lat')) {
-          return `${protocol}//baifa-api.batdev.lat:11001/api`
-        }
-        return `${protocol}//${currentHost}:11001/api`
+      // Si estamos en el dominio de producción
+      if (currentHost.includes('batdev.lat') || currentHost.includes('baifa')) {
+        return 'https://baifa-api.batdev.lat/api'
+      }
+
+      // Si la URL configurada apunta a localhost/127.0.0.1 pero el navegador está en un host remoto:
+      if (!rawBase || rawBase.includes('127.0.0.1') || rawBase.includes('localhost')) {
+        return 'https://baifa-api.batdev.lat/api'
       }
     }
 
-    return rawBase || 'http://127.0.0.1:11001/api'
+    return rawBase || 'https://baifa-api.batdev.lat/api'
   }
 
   const baseURL = getResolvedBaseURL()

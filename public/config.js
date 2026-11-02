@@ -1,9 +1,5 @@
-// Configuración en tiempo de ejecución para BaiFa UI en cPanel
-// Modifica la propiedad apiBase con la URL pública de tu API Laravel en cPanel
-// Ejemplo con subdominio: 'https://api.tudominio.com/api'
-// Ejemplo en subcarpeta:  'https://tudominio.com/api'
-// No necesitas recompilar el proyecto al cambiar esta URL.
-
+// Configuración en tiempo de ejecución para BaiFa UI
+// Modifica la propiedad apiBase con la URL pública de la API si deseas sobrescribirla sin recompilar.
 window.__BAIFA_CONFIG__ = {
-  apiBase: 'http://localhost:11001/api'
+  apiBase: 'https://baifa-api.batdev.lat/api'
 };
