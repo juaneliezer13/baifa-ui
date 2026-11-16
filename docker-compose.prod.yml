@@ -4,7 +4,7 @@ services:
     container_name: baifa-ui
     restart: unless-stopped
     ports:
-      - "12001:3000"
+      - "${FRONT_PORT:-15001}:3000"
     environment:
       - NODE_ENV=production
       - HOST=0.0.0.0

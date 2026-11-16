@@ -15,9 +15,9 @@ export const useApi = () => {
     if (import.meta.client && typeof window !== 'undefined') {
       const currentHost = window.location.hostname
 
-      // Si el navegador está en localhost o 127.0.0.1, usamos la API local en puerto 11001
+      // Si el navegador está en localhost o 127.0.0.1, usamos la API local en puerto 14001
       if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-        return 'http://127.0.0.1:11001/api'
+        return 'http://127.0.0.1:14001/api'
       }
 
       // Prioridad 1: Configuración en caliente desde /config.js para cPanel / Producción
