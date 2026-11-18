@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import type { SystemUser, SystemUserRole } from '~~/types/user'
+import { validateEmail, validatePersonName } from '~/utils/validators'
 
 const props = defineProps<{
   modelValue: boolean
@@ -20,12 +21,13 @@ const password = ref('')
 const showPassword = ref(false)
 const role = ref<SystemUserRole>('employee')
 const isActive = ref(true)
+const nameHintError = ref('')
+const emailHintError = ref('')
+const passwordHintError = ref('')
 
 const isEditing = computed(() => Boolean(props.userToEdit))
 const isClientUser = computed(() => isEditing.value && props.userToEdit?.role === 'client')
 
-// Opciones de roles según el prototipo y modelo de negocio
-// Nota: Los usuarios de tipo 'client' se crean exclusivamente desde el módulo de Clientes
 const roleOptions = computed<{ value: SystemUserRole; label: string }[]>(() => {
   if (isClientUser.value) {
     return [
@@ -39,7 +41,6 @@ const roleOptions = computed<{ value: SystemUserRole; label: string }[]>(() => {
   ]
 })
 
-// Descripción dinámica de permisos según el prototipo
 const roleDescriptions: Record<SystemUserRole, string> = {
   admin: 'Acceso total al sistema, configuración operativa y gestión integral de usuarios y generadores.',
   manager: 'Supervisión operativa, consulta de métricas, inventario y aprobación de solicitudes de clientes.',
@@ -51,6 +52,9 @@ watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen) {
+      nameHintError.value = ''
+      emailHintError.value = ''
+      passwordHintError.value = ''
       if (props.userToEdit) {
         name.value = props.userToEdit.name
         email.value = props.userToEdit.email
@@ -69,13 +73,40 @@ watch(
   }
 )
 
+const handleNameBlur = () => {
+  if (!name.value.trim()) return
+  nameHintError.value = validatePersonName(name.value, 'El nombre completo') || ''
+}
+
+const handleEmailBlur = () => {
+  if (!email.value.trim()) return
+  emailHintError.value = validateEmail(email.value) || ''
+}
+
 const handleClose = () => {
   emit('update:modelValue', false)
 }
 
 const handleSubmit = () => {
-  if (!name.value || !email.value) return
-  if (!isEditing.value && !password.value) return
+  nameHintError.value = ''
+  emailHintError.value = ''
+  passwordHintError.value = ''
+
+  const nameErr = validatePersonName(name.value, 'El nombre completo')
+  const emailErr = validateEmail(email.value, true)
+
+  if (nameErr) nameHintError.value = nameErr
+  if (emailErr) emailHintError.value = emailErr
+
+  if (!isEditing.value && password.value.length < 8) {
+    passwordHintError.value = 'La contraseña debe tener al menos 8 caracteres.'
+  } else if (isEditing.value && password.value && password.value.length < 8) {
+    passwordHintError.value = 'La nueva contraseña debe tener al menos 8 caracteres.'
+  }
+
+  if (nameHintError.value || emailHintError.value || passwordHintError.value) {
+    return
+  }
 
   emit('save', {
     name: name.value.trim(),
@@ -116,7 +147,7 @@ const handleSubmit = () => {
       </div>
 
       <!-- Formulario -->
-      <form class="mt-5 space-y-4" @submit.prevent="handleSubmit">
+      <form class="mt-5 space-y-4" novalidate @submit.prevent="handleSubmit">
         <!-- Campo: Nombre completo -->
         <div>
           <label for="name" class="block text-xs font-medium text-slate-300 mb-1.5">
@@ -127,12 +158,14 @@ const handleSubmit = () => {
             v-model="name"
             type="text"
             required
-            placeholder="Ej: Adriana Morales"
+            placeholder="Ej: Carlos Mendoza"
             class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-            :class="{ 'border-red-500': fieldErrors?.name }"
+            :class="{ 'border-red-500': nameHintError || fieldErrors?.name }"
+            @blur="handleNameBlur"
+            @input="nameHintError = ''"
           >
-          <p v-if="fieldErrors?.name" class="text-xs text-red-400 mt-1">
-            {{ fieldErrors.name.join(', ') }}
+          <p v-if="nameHintError || fieldErrors?.name" class="text-xs text-red-400 mt-1">
+            {{ nameHintError || fieldErrors?.name?.join(', ') }}
           </p>
         </div>
 
@@ -148,10 +181,12 @@ const handleSubmit = () => {
             required
             placeholder="usuario@baifa.com.ve"
             class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-            :class="{ 'border-red-500': fieldErrors?.email }"
+            :class="{ 'border-red-500': emailHintError || fieldErrors?.email }"
+            @blur="handleEmailBlur"
+            @input="emailHintError = ''"
           >
-          <p v-if="fieldErrors?.email" class="text-xs text-red-400 mt-1">
-            {{ fieldErrors.email.join(', ') }}
+          <p v-if="emailHintError || fieldErrors?.email" class="text-xs text-red-400 mt-1">
+            {{ emailHintError || fieldErrors?.email?.join(', ') }}
           </p>
         </div>
 
@@ -172,9 +207,10 @@ const handleSubmit = () => {
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               :required="!isEditing"
-              placeholder="••••••••"
+              placeholder="Mínimo 8 caracteres"
               class="w-full px-3.5 pr-10 py-2.5 rounded-xl bg-[#161e31] border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-              :class="{ 'border-red-500': fieldErrors?.password }"
+              :class="{ 'border-red-500': passwordHintError || fieldErrors?.password }"
+              @input="passwordHintError = ''"
             >
             <button
               type="button"
@@ -184,8 +220,8 @@ const handleSubmit = () => {
               <v-icon :icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" size="18" />
             </button>
           </div>
-          <p v-if="fieldErrors?.password" class="text-xs text-red-400 mt-1">
-            {{ fieldErrors.password.join(', ') }}
+          <p v-if="passwordHintError || fieldErrors?.password" class="text-xs text-red-400 mt-1">
+            {{ passwordHintError || fieldErrors?.password?.join(', ') }}
           </p>
         </div>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppLogo from '~/components/common/AppLogo.vue'
+import { validateEmail } from '~/utils/validators'
 
 definePageMeta({
   layout: 'auth'
@@ -15,29 +16,30 @@ const { forgotPassword, isLoading, errorMessage, fieldErrors } = useAuth()
 const email = ref('')
 const isSubmitted = ref(false)
 const localError = ref('')
-const demoResetUrl = ref('')
+const emailHintError = ref('')
+
+const handleEmailBlur = () => {
+  if (!email.value.trim()) {
+    emailHintError.value = ''
+    return
+  }
+  emailHintError.value = validateEmail(email.value) || ''
+}
 
 const handleRecoverPassword = async () => {
-  const cleanEmail = email.value.trim().toLowerCase()
-  if (!cleanEmail) {
-    localError.value = 'Por favor ingresa tu correo electrónico.'
-    return
-  }
-
-  // Validación de seguridad para cuentas institucionales de prueba
-  const blocked = ['admin@baifa.com.ve', 'cliente.real@empresa.com']
-  if (blocked.includes(cleanEmail)) {
-    localError.value = 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.'
-    return
-  }
-
   localError.value = ''
+  emailHintError.value = ''
+
+  const cleanEmail = email.value.trim().toLowerCase()
+  const emailErr = validateEmail(cleanEmail)
+  if (emailErr) {
+    emailHintError.value = emailErr
+    return
+  }
+
   const res = await forgotPassword({ email: cleanEmail })
 
   if (res.success) {
-    if (res.reset_url) {
-      demoResetUrl.value = res.reset_url
-    }
     isSubmitted.value = true
   }
 }
@@ -80,20 +82,6 @@ const handleRecoverPassword = async () => {
         Hemos enviado un enlace seguro a <strong class="text-[#3eb134]">{{ email }}</strong> para restablecer tu contraseña.
       </p>
 
-      <!-- Enlace para pruebas interactivas de demostración -->
-      <div v-if="demoResetUrl" class="mt-4 p-3 rounded-xl bg-[#0f172a] border border-slate-700/80 text-left">
-        <p class="text-[11px] font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-          <v-icon icon="mdi-information-outline" size="14" class="text-[#3eb134]" />
-          <span>Enlace de demostración rápida:</span>
-        </p>
-        <NuxtLink
-          :to="demoResetUrl.replace(/^https?:\/\/[^\/]+/, '')"
-          class="block text-xs text-[#3eb134] hover:underline font-mono break-all"
-        >
-          Continuar al restablecimiento &rarr;
-        </NuxtLink>
-      </div>
-
       <div class="pt-3">
         <NuxtLink
           to="/login"
@@ -105,7 +93,7 @@ const handleRecoverPassword = async () => {
     </div>
 
     <!-- Formulario de Recuperación -->
-    <form v-else class="space-y-4" @submit.prevent="handleRecoverPassword">
+    <form v-else class="space-y-4" novalidate @submit.prevent="handleRecoverPassword">
       <!-- Alerta de error -->
       <div
         v-if="localError || errorMessage"
@@ -127,10 +115,12 @@ const handleRecoverPassword = async () => {
           required
           placeholder="nombre@empresa.com"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-          :class="{ 'border-red-500': fieldErrors?.email }"
+          :class="{ 'border-red-500': emailHintError || fieldErrors?.email }"
+          @blur="handleEmailBlur"
+          @input="emailHintError = ''"
         >
-        <p v-if="fieldErrors?.email" class="text-xs text-red-400 mt-1">
-          {{ fieldErrors.email.join(', ') }}
+        <p v-if="emailHintError || fieldErrors?.email" class="text-xs text-red-400 mt-1">
+          {{ emailHintError || fieldErrors?.email?.join(', ') }}
         </p>
       </div>
 

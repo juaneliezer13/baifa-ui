@@ -6,6 +6,7 @@ import { useTracking } from '~/composables/useTracking'
 import { useGenerators } from '~/composables/useGenerators'
 import GeneratorStatusModal from '~/components/generators/GeneratorStatusModal.vue'
 import GeneratorStatusBadge from '~/components/generators/GeneratorStatusBadge.vue'
+import { formatSerialNumber, validateSerialNumber } from '~/utils/validators'
 import type { GeneratorStatus, CreateCheckpointData } from '~~/types/generator'
 
 definePageMeta({
@@ -64,23 +65,30 @@ useHead({
 
 // Estado local
 const searchInput = ref('')
+const serialHintError = ref('')
 const isStatusModalOpen = ref(false)
 const previewImage = ref<string | null>(null)
 
-// Ejemplos de seriales acorde a diseño Figma y datos reales
-const exampleSerials = ['GEN-2026-0041', 'GEN-2026-0039', 'GEN-2026-0037', 'GEN-2026-0035']
-
-const handleSearch = async (serialToSearch?: string) => {
-  const serial = (serialToSearch || searchInput.value).trim()
-  if (!serial) return
-
-  searchInput.value = serial
-  await trackBySerial(serial)
+const handleSerialInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const formatted = formatSerialNumber(target.value)
+  searchInput.value = formatted
+  target.value = formatted
+  serialHintError.value = ''
 }
 
-const selectExample = async (serial: string) => {
+const handleSearch = async (serialToSearch?: string) => {
+  const serial = formatSerialNumber(serialToSearch || searchInput.value)
   searchInput.value = serial
-  await handleSearch(serial)
+
+  const serialErr = validateSerialNumber(serial)
+  if (serialErr) {
+    serialHintError.value = serialErr
+    return
+  }
+
+  serialHintError.value = ''
+  await trackBySerial(serial)
 }
 
 // Búsqueda automática si viene en URL (/tracking/:serial o ?serial=XYZ)
@@ -205,10 +213,12 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
               class="absolute left-4 text-slate-400 pointer-events-none"
             />
             <input
-              v-model="searchInput"
+              :value="searchInput"
               type="text"
               placeholder="Ingresa el serial del generador — Ej: GEN-2026-0041"
-              class="w-full pl-12 pr-28 py-3.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white font-mono text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+              class="w-full pl-12 pr-28 py-3.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white font-mono text-sm placeholder-slate-500 uppercase focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+              :class="{ 'border-red-500': serialHintError }"
+              @input="handleSerialInput"
             >
             <div class="absolute right-2 flex items-center gap-1.5">
               <button
@@ -216,7 +226,7 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
                 type="button"
                 title="Limpiar búsqueda"
                 class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                @click="searchInput = ''; clearMessages()"
+                @click="searchInput = ''; serialHintError = ''; clearMessages()"
               >
                 <v-icon icon="mdi-close" size="16" />
               </button>
@@ -236,21 +246,10 @@ const getDotColorClass = (status: GeneratorStatus | string): string => {
               </button>
             </div>
           </div>
+          <p v-if="serialHintError" class="text-xs text-red-400 mt-2">
+            {{ serialHintError }}
+          </p>
         </form>
-
-        <!-- Chips de Seriales de Ejemplo -->
-        <div class="flex items-center flex-wrap gap-2 mt-4 text-xs">
-          <span class="text-slate-400 font-medium">Ejemplos:</span>
-          <button
-            v-for="serial in exampleSerials"
-            :key="serial"
-            type="button"
-            class="px-2.5 py-1 rounded-lg font-mono text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 hover:border-orange-500/50 hover:text-orange-400 transition-colors cursor-pointer"
-            @click="selectExample(serial)"
-          >
-            {{ serial }}
-          </button>
-        </div>
       </div>
 
       <!-- Alertas de Éxito / Error -->

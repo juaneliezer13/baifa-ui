@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import AppLogo from '~/components/common/AppLogo.vue'
+import { validateEmail } from '~/utils/validators'
 
 definePageMeta({
   layout: 'auth'
@@ -20,6 +21,7 @@ const passwordConfirm = ref('')
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const localError = ref('')
+const emailHintError = ref('')
 const isSuccess = ref(false)
 
 onMounted(() => {
@@ -31,24 +33,27 @@ onMounted(() => {
   }
 })
 
+const handleEmailBlur = () => {
+  if (!email.value.trim()) {
+    emailHintError.value = ''
+    return
+  }
+  emailHintError.value = validateEmail(email.value) || ''
+}
+
 const handleResetPassword = async () => {
   localError.value = ''
+  emailHintError.value = ''
 
   if (!token.value) {
     localError.value = 'El token de restablecimiento no está presente. Por favor utiliza el enlace enviado a tu correo.'
     return
   }
 
-  if (!email.value) {
-    localError.value = 'El correo electrónico es obligatorio.'
-    return
-  }
-
-  // Pre-validar cuentas institucionales de prueba
   const cleanEmail = email.value.trim().toLowerCase()
-  const blocked = ['admin@baifa.com.ve', 'cliente.real@empresa.com']
-  if (blocked.includes(cleanEmail)) {
-    localError.value = 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.'
+  const emailErr = validateEmail(cleanEmail)
+  if (emailErr) {
+    emailHintError.value = emailErr
     return
   }
 
@@ -122,7 +127,7 @@ const handleResetPassword = async () => {
     </div>
 
     <!-- Formulario de Restablecimiento -->
-    <form v-else class="space-y-4" @submit.prevent="handleResetPassword">
+    <form v-else class="space-y-4" novalidate @submit.prevent="handleResetPassword">
       <!-- Alerta de advertencia si falta el token -->
       <div
         v-if="!token && !isLoading"
@@ -153,10 +158,12 @@ const handleResetPassword = async () => {
           required
           placeholder="nombre@empresa.com"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-          :class="{ 'border-red-500': fieldErrors?.email }"
+          :class="{ 'border-red-500': emailHintError || fieldErrors?.email }"
+          @blur="handleEmailBlur"
+          @input="emailHintError = ''"
         >
-        <p v-if="fieldErrors?.email" class="text-xs text-red-400 mt-1">
-          {{ fieldErrors.email.join(', ') }}
+        <p v-if="emailHintError || fieldErrors?.email" class="text-xs text-red-400 mt-1">
+          {{ emailHintError || fieldErrors?.email?.join(', ') }}
         </p>
       </div>
 

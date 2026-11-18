@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { GeneratorItem, GeneratorStatus } from '~~/types/generator'
+import { validateCompanyName } from '~/utils/validators'
 
 const props = defineProps<{
   modelValue: boolean
@@ -24,6 +25,7 @@ const newStatus = ref<GeneratorStatus>('in_transit')
 const checkpointName = ref('')
 const eventDate = ref('')
 const notes = ref('')
+const checkpointNameError = ref('')
 
 const statusOptions: { value: GeneratorStatus; label: string; icon: string; defaultCheckpoint: string }[] = [
   { value: 'warehouse', label: 'En Almacén', icon: 'mdi-warehouse', defaultCheckpoint: 'Almacén Central Valencia' },
@@ -41,10 +43,16 @@ watch(
       checkpointName.value = ''
       eventDate.value = ''
       notes.value = props.generator.notes || ''
+      checkpointNameError.value = ''
     }
   },
   { immediate: true }
 )
+
+const handleCheckpointBlur = () => {
+  if (!checkpointName.value.trim()) return
+  checkpointNameError.value = validateCompanyName(checkpointName.value, 3, 'El nombre del punto de control') || ''
+}
 
 const handleClose = () => {
   emit('update:modelValue', false)
@@ -53,8 +61,14 @@ const handleClose = () => {
 const handleSubmit = () => {
   if (!props.generator) return
 
-  const defaultOption = statusOptions.find(o => o.value === newStatus.value)
-  const resolvedName = checkpointName.value.trim() || defaultOption?.defaultCheckpoint || 'Punto de Control'
+  checkpointNameError.value = ''
+  const cpErr = validateCompanyName(checkpointName.value, 3, 'El nombre del punto de control')
+  if (cpErr) {
+    checkpointNameError.value = cpErr
+    return
+  }
+
+  const resolvedName = checkpointName.value.trim()
 
   emit('updateStatus', {
     id: props.generator.id,
@@ -96,7 +110,7 @@ const handleSubmit = () => {
       </div>
 
       <!-- Formulario -->
-      <form class="space-y-4 pt-4" @submit.prevent="handleSubmit">
+      <form class="space-y-4 pt-4" novalidate @submit.prevent="handleSubmit">
         <!-- Nuevo Estado -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">
@@ -122,9 +136,16 @@ const handleSubmit = () => {
             v-model="checkpointName"
             type="text"
             required
+            maxlength="150"
             placeholder="Ej: Almacén Valencia, Alcabala Guacara, Puerto Cabello..."
             class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
+            :class="{ 'border-red-500': checkpointNameError }"
+            @blur="handleCheckpointBlur"
+            @input="checkpointNameError = ''"
           >
+          <p v-if="checkpointNameError" class="text-[11px] text-red-400 mt-1">
+            {{ checkpointNameError }}
+          </p>
         </div>
 
         <!-- Fecha y Hora del Evento -->
@@ -148,6 +169,7 @@ const handleSubmit = () => {
           <textarea
             v-model="notes"
             rows="3"
+            maxlength="2000"
             placeholder="Transportista, placa de vehículo, chofer, novedades en ruta..."
             class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all resize-none"
           />

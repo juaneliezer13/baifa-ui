@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppLogo from '~/components/common/AppLogo.vue'
+import { validateEmail } from '~/utils/validators'
 
 definePageMeta({
   layout: 'auth'
@@ -17,30 +18,35 @@ const password = ref('')
 const rememberMe = ref(false)
 const showPassword = ref(false)
 const localError = ref('')
-
-const autofillDemo = (type: 'admin' | 'client' = 'admin') => {
-  if (type === 'client') {
-    email.value = 'cliente.real@empresa.com'
-    password.value = 'password123'
-  } else {
-    email.value = 'admin@baifa.com.ve'
-    password.value = '12345678'
-  }
-  localError.value = ''
-}
+const emailHintError = ref('')
 
 const route = useRoute()
 
+const handleEmailBlur = () => {
+  if (!email.value.trim()) {
+    emailHintError.value = ''
+    return
+  }
+  emailHintError.value = validateEmail(email.value) || ''
+}
+
 const handleLogin = async () => {
-  if (!email.value || !password.value) {
-    localError.value = 'Por favor ingresa tu correo y contraseña.'
+  localError.value = ''
+  emailHintError.value = ''
+
+  const emailErr = validateEmail(email.value)
+  if (emailErr) {
+    emailHintError.value = emailErr
     return
   }
 
-  localError.value = ''
+  if (!password.value) {
+    localError.value = 'Por favor ingresa tu contraseña.'
+    return
+  }
 
   const result = await login({
-    email: email.value,
+    email: email.value.trim().toLowerCase(),
     password: password.value,
     deviceName: 'web'
   })
@@ -79,7 +85,7 @@ const handleLogin = async () => {
     </div>
 
     <!-- Formulario -->
-    <form class="space-y-4" @submit.prevent="handleLogin">
+    <form class="space-y-4" novalidate @submit.prevent="handleLogin">
       <!-- Campo Correo Electrónico -->
       <div>
         <label for="email" class="block text-xs font-medium text-slate-300 mb-1.5">
@@ -88,15 +94,17 @@ const handleLogin = async () => {
         <input
           id="email"
           v-model="email"
-          type="text"
+          type="email"
           required
           autocomplete="username"
           placeholder="usuario@baifa.com.ve"
           class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-          :class="{ 'border-red-500': fieldErrors?.email }"
+          :class="{ 'border-red-500': emailHintError || fieldErrors?.email }"
+          @blur="handleEmailBlur"
+          @input="emailHintError = ''"
         >
-        <p v-if="fieldErrors?.email" class="text-xs text-red-400 mt-1">
-          {{ fieldErrors.email.join(', ') }}
+        <p v-if="emailHintError || fieldErrors?.email" class="text-xs text-red-400 mt-1">
+          {{ emailHintError || fieldErrors?.email?.join(', ') }}
         </p>
       </div>
 
@@ -165,33 +173,6 @@ const handleLogin = async () => {
         </button>
       </div>
     </form>
-
-    <!-- Credenciales Demo / Asistente Rápido -->
-    <div class="mt-6 p-3.5 rounded-xl bg-[#0e1726]/80 border border-slate-800/80 text-xs text-slate-400">
-      <div class="flex items-center justify-between mb-2.5">
-        <span class="font-semibold text-slate-300">Accesos de prueba rápidos</span>
-        <div class="flex items-center gap-1.5">
-          <button
-            type="button"
-            class="text-[#3eb134] hover:text-[#349b2c] font-medium transition-colors cursor-pointer px-2 py-0.5 rounded-md bg-[#3eb134]/10 hover:bg-[#3eb134]/20 text-[11px]"
-            @click="autofillDemo('admin')"
-          >
-            Admin
-          </button>
-          <button
-            type="button"
-            class="text-sky-400 hover:text-sky-300 font-medium transition-colors cursor-pointer px-2 py-0.5 rounded-md bg-sky-950/50 hover:bg-sky-900/50 text-[11px]"
-            @click="autofillDemo('client')"
-          >
-            Cliente
-          </button>
-        </div>
-      </div>
-      <div class="space-y-1 font-mono text-[11px]">
-        <div>Admin: <span class="text-slate-300">admin@baifa.com.ve</span> (12345678)</div>
-        <div>Cliente: <span class="text-slate-300">cliente.real@empresa.com</span> (password123)</div>
-      </div>
-    </div>
 
     <!-- Enlace a Registro (Solicitar acceso) -->
     <div class="mt-8 text-center text-xs text-slate-400">

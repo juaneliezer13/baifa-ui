@@ -1,6 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import AppLogo from '~/components/common/AppLogo.vue'
+import {
+  formatRifOrCedula,
+  validateRifOrCedula,
+  formatPhone,
+  validatePhone,
+  validateEmail,
+  validatePersonName,
+  validateCompanyName
+} from '~/utils/validators'
 
 definePageMeta({
   layout: 'auth'
@@ -23,43 +32,117 @@ const showPassword = ref(false)
 const localError = ref('')
 const isSuccess = ref(false)
 
+const localFieldErrors = reactive<{
+  company_fiscal_name: string
+  rif: string
+  phone: string
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+}>({
+  company_fiscal_name: '',
+  rif: '',
+  phone: '',
+  name: '',
+  email: '',
+  password: '',
+  password_confirmation: ''
+})
+
+const clearLocalFieldErrors = () => {
+  localFieldErrors.company_fiscal_name = ''
+  localFieldErrors.rif = ''
+  localFieldErrors.phone = ''
+  localFieldErrors.name = ''
+  localFieldErrors.email = ''
+  localFieldErrors.password = ''
+  localFieldErrors.password_confirmation = ''
+}
+
+const handleFiscalNameBlur = () => {
+  if (!companyFiscalName.value.trim()) return
+  localFieldErrors.company_fiscal_name = validateCompanyName(companyFiscalName.value, 3, 'La razón social') || ''
+}
+
 const handleRifInput = (e: Event) => {
   const target = e.target as HTMLInputElement
-  rif.value = target.value.toUpperCase()
+  const formatted = formatRifOrCedula(target.value)
+  rif.value = formatted
+  target.value = formatted
+  if (localFieldErrors.rif) {
+    localFieldErrors.rif = validateRifOrCedula(rif.value) || ''
+  }
+}
+
+const handleRifBlur = () => {
+  if (!rif.value.trim()) return
+  localFieldErrors.rif = validateRifOrCedula(rif.value) || ''
+}
+
+const handlePhoneInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const formatted = formatPhone(target.value)
+  phone.value = formatted
+  target.value = formatted
+  if (localFieldErrors.phone) {
+    localFieldErrors.phone = validatePhone(phone.value, false) || ''
+  }
+}
+
+const handlePhoneBlur = () => {
+  localFieldErrors.phone = validatePhone(phone.value, false) || ''
+}
+
+const handleNameBlur = () => {
+  if (!fullName.value.trim()) return
+  localFieldErrors.name = validatePersonName(fullName.value, 'El nombre y apellido') || ''
+}
+
+const handleEmailBlur = () => {
+  if (!email.value.trim()) return
+  localFieldErrors.email = validateEmail(email.value) || ''
 }
 
 const handleRegister = async () => {
-  if (!companyFiscalName.value.trim()) {
-    localError.value = 'La razón social de la empresa es obligatoria.'
-    return
-  }
+  localError.value = ''
+  clearLocalFieldErrors()
 
-  if (!rif.value.trim()) {
-    localError.value = 'El número de RIF es obligatorio.'
-    return
-  }
+  const fiscalErr = validateCompanyName(companyFiscalName.value, 3, 'La razón social o nombre fiscal')
+  const rifErr = validateRifOrCedula(rif.value, true)
+  const phoneErr = validatePhone(phone.value, false)
+  const nameErr = validatePersonName(fullName.value, 'El nombre y apellido de contacto')
+  const emailErr = validateEmail(email.value, true)
 
-  const rifRegex = /^[JGVEPjgvep]-\d{8,9}-\d$/
-  if (!rifRegex.test(rif.value.trim())) {
-    localError.value = 'El RIF debe tener un formato válido venezolano (ej. J-12345678-9).'
-    return
-  }
-
-  if (password.value !== passwordConfirm.value) {
-    localError.value = 'Las contraseñas no coinciden.'
-    return
-  }
+  if (fiscalErr) localFieldErrors.company_fiscal_name = fiscalErr
+  if (rifErr) localFieldErrors.rif = rifErr
+  if (phoneErr) localFieldErrors.phone = phoneErr
+  if (nameErr) localFieldErrors.name = nameErr
+  if (emailErr) localFieldErrors.email = emailErr
 
   if (password.value.length < 8) {
-    localError.value = 'La contraseña debe tener al menos 8 caracteres.'
-    return
+    localFieldErrors.password = 'La contraseña debe tener al menos 8 caracteres.'
   }
 
-  localError.value = ''
+  if (!passwordConfirm.value || password.value !== passwordConfirm.value) {
+    localFieldErrors.password_confirmation = 'Las contraseñas ingresadas no coinciden.'
+  }
+
+  if (
+    localFieldErrors.company_fiscal_name ||
+    localFieldErrors.rif ||
+    localFieldErrors.phone ||
+    localFieldErrors.name ||
+    localFieldErrors.email ||
+    localFieldErrors.password ||
+    localFieldErrors.password_confirmation
+  ) {
+    return
+  }
 
   const result = await register({
     name: fullName.value.trim(),
-    email: email.value.trim(),
+    email: email.value.trim().toLowerCase(),
     company_fiscal_name: companyFiscalName.value.trim(),
     rif: rif.value.trim().toUpperCase(),
     phone: phone.value.trim() || undefined,
@@ -116,7 +199,7 @@ const handleRegister = async () => {
     </div>
 
     <!-- Formulario de Registro -->
-    <form v-else class="space-y-4" @submit.prevent="handleRegister">
+    <form v-else class="space-y-4" novalidate @submit.prevent="handleRegister">
       <!-- Alerta de error -->
       <div
         v-if="localError || errorMessage"
@@ -130,14 +213,14 @@ const handleRegister = async () => {
       <div class="pt-1">
         <div class="text-[11px] font-bold text-[#3eb134] tracking-wider uppercase mb-3 flex items-center gap-1.5">
           <v-icon icon="mdi-domain" size="15" />
-          <span>Datos de la Empresa</span>
+          <span>Datos de la Empresa / Cliente</span>
         </div>
 
         <div class="space-y-3">
           <!-- Razón Social -->
           <div>
             <label for="companyFiscalName" class="block text-xs font-medium text-slate-300 mb-1.5">
-              Razón Social de la empresa <span class="text-[#3eb134]">*</span>
+              Razón Social o Nombre Fiscal <span class="text-[#3eb134]">*</span>
             </label>
             <input
               id="companyFiscalName"
@@ -146,48 +229,53 @@ const handleRegister = async () => {
               required
               placeholder="Ej: Inversiones Metalúrgicas C.A."
               class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-              :class="{ 'border-red-500': fieldErrors?.company_fiscal_name }"
+              :class="{ 'border-red-500': localFieldErrors.company_fiscal_name || fieldErrors?.company_fiscal_name }"
+              @blur="handleFiscalNameBlur"
+              @input="localFieldErrors.company_fiscal_name = ''"
             >
-            <p v-if="fieldErrors?.company_fiscal_name" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.company_fiscal_name.join(', ') }}
+            <p v-if="localFieldErrors.company_fiscal_name || fieldErrors?.company_fiscal_name" class="text-xs text-red-400 mt-1">
+              {{ localFieldErrors.company_fiscal_name || fieldErrors?.company_fiscal_name?.join(', ') }}
             </p>
           </div>
 
-          <!-- RIF y Teléfono en dos columnas -->
+          <!-- RIF / Cédula y Teléfono en dos columnas -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label for="rif" class="block text-xs font-medium text-slate-300 mb-1.5">
-                RIF <span class="text-[#3eb134]">*</span>
+                RIF o Cédula <span class="text-[#3eb134]">*</span>
               </label>
               <input
                 id="rif"
                 :value="rif"
                 type="text"
                 required
-                placeholder="J-12345678-9"
+                placeholder="J-12345678-9 o V-12345678"
                 class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 uppercase font-mono focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-                :class="{ 'border-red-500': fieldErrors?.rif }"
+                :class="{ 'border-red-500': localFieldErrors.rif || fieldErrors?.rif }"
                 @input="handleRifInput"
+                @blur="handleRifBlur"
               >
-              <p v-if="fieldErrors?.rif" class="text-xs text-red-400 mt-1">
-                {{ fieldErrors.rif.join(', ') }}
+              <p v-if="localFieldErrors.rif || fieldErrors?.rif" class="text-xs text-red-400 mt-1">
+                {{ localFieldErrors.rif || fieldErrors?.rif?.join(', ') }}
               </p>
             </div>
 
             <div>
               <label for="phone" class="block text-xs font-medium text-slate-300 mb-1.5">
-                Teléfono de empresa
+                Teléfono de contacto
               </label>
               <input
                 id="phone"
-                v-model="phone"
+                :value="phone"
                 type="tel"
-                placeholder="0212-5551234"
-                class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-                :class="{ 'border-red-500': fieldErrors?.phone }"
+                placeholder="0414-1234567 / 0212-5551234"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm font-mono placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
+                :class="{ 'border-red-500': localFieldErrors.phone || fieldErrors?.phone }"
+                @input="handlePhoneInput"
+                @blur="handlePhoneBlur"
               >
-              <p v-if="fieldErrors?.phone" class="text-xs text-red-400 mt-1">
-                {{ fieldErrors.phone.join(', ') }}
+              <p v-if="localFieldErrors.phone || fieldErrors?.phone" class="text-xs text-red-400 mt-1">
+                {{ localFieldErrors.phone || fieldErrors?.phone?.join(', ') }}
               </p>
             </div>
           </div>
@@ -214,10 +302,12 @@ const handleRegister = async () => {
               required
               placeholder="Ej: María González"
               class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-              :class="{ 'border-red-500': fieldErrors?.name }"
+              :class="{ 'border-red-500': localFieldErrors.name || fieldErrors?.name }"
+              @blur="handleNameBlur"
+              @input="localFieldErrors.name = ''"
             >
-            <p v-if="fieldErrors?.name" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.name.join(', ') }}
+            <p v-if="localFieldErrors.name || fieldErrors?.name" class="text-xs text-red-400 mt-1">
+              {{ localFieldErrors.name || fieldErrors?.name?.join(', ') }}
             </p>
           </div>
 
@@ -233,10 +323,12 @@ const handleRegister = async () => {
               required
               placeholder="nombre@empresa.com"
               class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-              :class="{ 'border-red-500': fieldErrors?.email }"
+              :class="{ 'border-red-500': localFieldErrors.email || fieldErrors?.email }"
+              @blur="handleEmailBlur"
+              @input="localFieldErrors.email = ''"
             >
-            <p v-if="fieldErrors?.email" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.email.join(', ') }}
+            <p v-if="localFieldErrors.email || fieldErrors?.email" class="text-xs text-red-400 mt-1">
+              {{ localFieldErrors.email || fieldErrors?.email?.join(', ') }}
             </p>
           </div>
         </div>
@@ -264,7 +356,8 @@ const handleRegister = async () => {
                 minlength="8"
                 placeholder="Mínimo 8 caracteres"
                 class="w-full px-3.5 pr-10 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-                :class="{ 'border-red-500': fieldErrors?.password }"
+                :class="{ 'border-red-500': localFieldErrors.password || fieldErrors?.password }"
+                @input="localFieldErrors.password = ''"
               >
               <button
                 type="button"
@@ -274,8 +367,8 @@ const handleRegister = async () => {
                 <v-icon :icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" size="18" />
               </button>
             </div>
-            <p v-if="fieldErrors?.password" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.password.join(', ') }}
+            <p v-if="localFieldErrors.password || fieldErrors?.password" class="text-xs text-red-400 mt-1">
+              {{ localFieldErrors.password || fieldErrors?.password?.join(', ') }}
             </p>
           </div>
 
@@ -291,10 +384,11 @@ const handleRegister = async () => {
               required
               placeholder="Repite la contraseña"
               class="w-full px-3.5 py-2.5 rounded-xl bg-[#161e31] border border-slate-700/80 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-colors"
-              :class="{ 'border-red-500': fieldErrors?.password_confirmation }"
+              :class="{ 'border-red-500': localFieldErrors.password_confirmation || fieldErrors?.password_confirmation }"
+              @input="localFieldErrors.password_confirmation = ''"
             >
-            <p v-if="fieldErrors?.password_confirmation" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.password_confirmation.join(', ') }}
+            <p v-if="localFieldErrors.password_confirmation || fieldErrors?.password_confirmation" class="text-xs text-red-400 mt-1">
+              {{ localFieldErrors.password_confirmation || fieldErrors?.password_confirmation?.join(', ') }}
             </p>
           </div>
         </div>

@@ -130,10 +130,10 @@ const handleLogout = async () => {
           >
             <div class="px-3 py-2 border-b border-slate-800 mb-1">
               <div class="text-xs font-semibold text-white truncate">
-                {{ user?.name || 'Cliente Ejemplo' }}
+                {{ user?.name || 'Cliente' }}
               </div>
               <div class="text-[11px] text-slate-400 truncate mt-0.5">
-                {{ user?.email || 'cliente.real@empresa.com' }}
+                {{ user?.email || '' }}
               </div>
             </div>
 

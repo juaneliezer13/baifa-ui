@@ -18,7 +18,7 @@ Este repositorio contiene la aplicación cliente web frontend **baifa-ui** para 
   - **`manager` (Jefe / Gerente):** Supervisión operativa, inventario y reportes.
   - **`employee` (Operador):** Actualización de estados e inspección de generadores en ruta.
   - **`client` (Cliente Empresarial):** Portal de autogestión y seguimiento de generadores adquiridos.
-* **Hoja de Ruta (5 Etapas — `release/v1.0.5`):**
+* **Hoja de Ruta (5 Etapas — `release/v1.0.7`):**
   - **Etapa 1:** ✅ **Completada** — Login, Logout, Registro de cliente con RIF/Razón Social, Recuperación/Reset de contraseña, Módulo de Usuarios y Directorio Fiscal de Clientes.
   - **Etapa 2:** ✅ **Completada** — Catálogo de Generadores, ficha técnica (kVA, diésel), seriales y fotografía.
   - **Etapa 3:** ✅ **Completada** — Trazabilidad, puntos de control (checkpoints) y consulta pública estilo MRW.
@@ -62,5 +62,5 @@ Este repositorio contiene la aplicación cliente web frontend **baifa-ui** para 
 ## 🔀 3. Flujo Git y Versionado
 * Rama principal de producción: `main`.
 * Rama base de desarrollo activo: `develop`.
-* Ramas y tags de release en GitHub: `release/vX.Y.Z` (actual: `release/v1.0.5`).
-* Tags de imagen en Docker Hub: `release-X.Y.Z` (`juaneliezer13/baifa-ui:release-1.0.5`).
+* Ramas y tags de release en GitHub: `release/vX.Y.Z` (actual: `release/v1.0.7`). Prohibido usar tags sin el prefijo `release/`.
+* Tags de imagen en Docker Hub: `release-X.Y.Z` (`juaneliezer13/baifa-ui:release-1.0.7`).

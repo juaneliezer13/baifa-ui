@@ -1,123 +1,81 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useGenerators } from '~/composables/useGenerators'
 
 const { user } = useAuth()
 const { generators, fetchGenerators, isLoading, getStatusConfig } = useGenerators()
 
-const activeNotification = ref('')
-const serialQuery = ref('')
-
 onMounted(async () => {
   await fetchGenerators()
 })
 
-const clientCards = [
+const inTransitCount = computed(() =>
+  generators.value.filter(g => g.status === 'in_transit' || g.status === 'checkpoint').length
+)
+
+const installedCount = computed(() =>
+  generators.value.filter(g => g.status === 'delivered' || g.status === 'installed').length
+)
+
+const clientCards = computed(() => [
   {
-    id: 'orders',
-    title: 'Mis pedidos',
-    description: 'Consulta el estado de despacho, facturación y tiempos estimados de entrega de tus unidades.',
-    badge: '2 activos',
+    id: 'generators',
+    to: '/generators',
+    title: 'Mis generadores',
+    description: 'Consulta el inventario de plantas eléctricas y equipos asignados a tu empresa.',
+    badge: `${generators.value.length} ${generators.value.length === 1 ? 'equipo' : 'equipos'}`,
     badgeColor: 'text-[#3eb134] bg-[#3eb134]/10 border-[#3eb134]/30',
-    icon: 'mdi-package-variant-closed',
+    icon: 'mdi-engine-outline',
     iconColor: 'text-[#3eb134] bg-[#3eb134]/15'
   },
   {
-    id: 'cart',
-    title: 'Mi lista de compras',
-    description: 'Generadores, tableros de transferencia y repuestos guardados para solicitar cotización formal.',
-    badge: '4 ítems',
-    badgeColor: 'text-amber-400 bg-amber-950/40 border-amber-800/40',
-    icon: 'mdi-cart-outline',
-    iconColor: 'text-amber-400 bg-amber-950/50'
+    id: 'tracking',
+    to: '/tracking',
+    title: 'Rastrear por serial',
+    description: 'Consulta en tiempo real la línea de tiempo y los puntos de control de tus unidades.',
+    badge: 'Trazabilidad',
+    badgeColor: 'text-orange-400 bg-orange-950/40 border-orange-800/40',
+    icon: 'mdi-crosshairs-gps',
+    iconColor: 'text-orange-400 bg-orange-950/50'
   },
   {
-    id: 'catalog',
-    title: 'Ver generadores',
-    description: 'Explora nuestro portafolio de plantas eléctricas diésel, insonorizadas y abiertas con tecnología de punta.',
-    badge: 'Catálogo Baifa',
+    id: 'transit',
+    to: '/generators',
+    title: 'Unidades en ruta',
+    description: 'Equipos despachados actualmente en tránsito o en puntos de control logísticos.',
+    badge: `${inTransitCount.value} en ruta`,
     badgeColor: 'text-sky-400 bg-sky-950/40 border-sky-800/40',
-    icon: 'mdi-engine-outline',
+    icon: 'mdi-truck-fast-outline',
     iconColor: 'text-sky-400 bg-sky-950/50'
   },
   {
-    id: 'support',
-    title: 'Soporte y Mantenimiento',
-    description: 'Programa servicios de mantenimiento preventivo, visitas técnicas en sitio y repuestos originales.',
-    badge: 'Garantía activa',
+    id: 'installed',
+    to: '/generators',
+    title: 'Equipos entregados',
+    description: 'Generadores entregados en locación o instalados y operativos en tus instalaciones.',
+    badge: `${installedCount.value} activos`,
     badgeColor: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40',
-    icon: 'mdi-shield-check-outline',
+    icon: 'mdi-check-decagram-outline',
     iconColor: 'text-emerald-400 bg-emerald-950/50'
   }
-]
+])
 
 const displayEquipments = computed(() => {
-  if (generators.value.length > 0) {
-    return generators.value.slice(0, 5).map((g) => {
-      const config = getStatusConfig(g.status)
-      return {
-        serial: g.serial_number,
-        model: g.model + (g.capacity_kva ? ` (${g.capacity_kva} kVA)` : ''),
-        location: g.notes || (g.estimated_arrival_date ? `ETA Estimada: ${g.estimated_arrival_date}` : 'Instalación del cliente'),
-        status: g.status_label || config.label,
-        statusColor: config.bgClass
-      }
-    })
-  }
-
-  return [
-    {
-      serial: 'GEN-2026-0037',
-      model: 'BF-C170S (170 kVA Soundproof)',
-      location: 'Sede Principal - Valencia',
-      status: 'Instalado y Operativo',
-      statusColor: 'text-emerald-400 bg-emerald-950/50 border-emerald-800/40'
-    },
-    {
-      serial: 'GEN-2026-0041',
-      model: 'BF-C250S (250 kVA Industrial)',
-      location: 'En Tránsito — Destino Caracas',
-      status: 'En Tránsito',
-      statusColor: 'text-sky-400 bg-sky-950/50 border-sky-800/40'
+  return generators.value.slice(0, 5).map((g) => {
+    const config = getStatusConfig(g.status)
+    return {
+      serial: g.serial_number,
+      model: g.model + (g.capacity_kva ? ` (${g.capacity_kva} kVA)` : ''),
+      location: g.notes || (g.estimated_arrival_date ? `ETA Estimada: ${g.estimated_arrival_date}` : 'Instalación del cliente'),
+      status: g.status_label || config.label,
+      statusColor: config.bgClass
     }
-  ]
+  })
 })
-
-const handleCardClick = (id: string, title: string) => {
-  if (id === 'catalog') {
-    return navigateTo('/generators')
-  }
-  handleAction(title)
-}
-
-const handleAction = (title: string) => {
-  activeNotification.value = `Has seleccionado "${title}". Esta sección se encuentra en preparación para la próxima actualización.`
-  setTimeout(() => {
-    activeNotification.value = ''
-  }, 4000)
-}
 </script>
 
 <template>
   <div class="space-y-8 max-w-6xl mx-auto py-2">
-    <!-- Notificación flotante informativa -->
-    <div
-      v-if="activeNotification"
-      class="p-4 rounded-2xl bg-slate-800/90 border border-[#3eb134]/40 text-white text-xs flex items-center justify-between shadow-xl backdrop-blur-md animate-fade-in"
-    >
-      <div class="flex items-center gap-3">
-        <v-icon icon="mdi-information-outline" size="20" class="text-[#3eb134]" />
-        <span>{{ activeNotification }}</span>
-      </div>
-      <button
-        type="button"
-        class="text-slate-400 hover:text-white transition-colors"
-        @click="activeNotification = ''"
-      >
-        <v-icon icon="mdi-close" size="16" />
-      </button>
-    </div>
-
     <!-- 1. Banner Superior de Bienvenida para el Cliente -->
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#061a0e] via-[#0b2414] to-[#041009] border border-slate-800/80 p-8 sm:p-10 shadow-lg">
       <!-- Glow decorativo de fondo -->
@@ -134,26 +92,26 @@ const handleAction = (title: string) => {
         </h1>
 
         <p class="text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
-          Hola <strong class="text-white">{{ user?.name || 'Estimado Cliente' }}</strong><span v-if="user?.client?.company_fiscal_name"> (<span class="text-[#3eb134] font-medium">{{ user.client.company_fiscal_name }}</span> · RIF: <span class="font-mono text-slate-300">{{ user.client.rif }}</span>)</span>, desde este panel puedes consultar tus compras, solicitar nuevos generadores y hacer seguimiento a tus equipos en operación con total confianza.
+          Hola <strong class="text-white">{{ user?.name || 'Estimado Cliente' }}</strong><span v-if="user?.client?.company_fiscal_name"> (<span class="text-[#3eb134] font-medium">{{ user.client.company_fiscal_name }}</span> · RIF: <span class="font-mono text-slate-300">{{ user.client.rif }}</span>)</span>, desde este panel puedes consultar el estado logístico y hacer seguimiento a tus equipos asignados en tiempo real.
         </p>
       </div>
     </div>
 
-    <!-- 2. Tarjetas de Acción del Dashboard Principal (Mis pedidos, Mi lista de compras, Ver generadores) -->
+    <!-- 2. Tarjetas de Acción del Dashboard Principal -->
     <div>
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-bold text-white tracking-tight">
           Accesos directos
         </h2>
-        <span class="text-xs text-slate-400">Panel simplificado de cliente</span>
+        <span class="text-xs text-slate-400">Panel de cliente</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div
+        <NuxtLink
           v-for="card in clientCards"
           :key="card.id"
+          :to="card.to"
           class="bg-[#0f172a] border border-[#1e293b] hover:border-[#3eb134]/50 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 shadow-sm group cursor-pointer"
-          @click="handleCardClick(card.id, card.title)"
         >
           <div>
             <!-- Header de la tarjeta con icono y badge -->
@@ -177,10 +135,10 @@ const handleAction = (title: string) => {
 
           <!-- Botón de acción al pie -->
           <div class="pt-5 mt-auto flex items-center justify-between text-xs font-semibold text-[#3eb134] group-hover:text-[#349b2c]">
-            <span>Acceder</span>
+            <span>Consultar</span>
             <v-icon icon="mdi-arrow-right" size="16" class="transition-transform group-hover:translate-x-1" />
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </div>
 
@@ -195,19 +153,30 @@ const handleAction = (title: string) => {
             Plantas eléctricas asignadas a tu cuenta empresarial
           </p>
         </div>
-        <button
-          type="button"
+        <NuxtLink
+          to="/generators"
           class="text-xs font-semibold text-[#3eb134] hover:text-[#349b2c] transition-colors cursor-pointer"
-          @click="navigateTo('/generators')"
         >
           Ver todos
-        </button>
+        </NuxtLink>
       </div>
 
-      <div class="space-y-3">
-        <div
+      <div v-if="isLoading" class="py-10 text-center text-slate-400">
+        <v-progress-circular indeterminate size="28" width="2" color="#3eb134" class="mb-2" />
+        <p class="text-xs text-slate-400">Cargando generadores asignados...</p>
+      </div>
+
+      <div v-else-if="displayEquipments.length === 0" class="py-10 text-center text-slate-400">
+        <v-icon icon="mdi-flash-off" size="36" class="text-slate-600 mb-2" />
+        <p class="text-sm font-semibold text-slate-300">No tienes generadores asignados actualmente</p>
+        <p class="text-xs text-slate-500 mt-1">Cuando se asigne un equipo a tu empresa aparecerá reflejado aquí.</p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <NuxtLink
           v-for="item in displayEquipments"
           :key="item.serial"
+          :to="`/tracking?serial=${item.serial}`"
           class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-[#161e31] border border-slate-800 hover:border-slate-700 transition-colors gap-3"
         >
           <div class="flex items-center gap-3.5">
@@ -232,7 +201,7 @@ const handleAction = (title: string) => {
               {{ item.status }}
             </span>
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </div>
   </div>

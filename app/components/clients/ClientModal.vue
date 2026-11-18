@@ -1,6 +1,15 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import type { ClientItem, CreateClientData, UpdateClientData } from '~~/types/client'
+import {
+  formatRifOrCedula,
+  validateRifOrCedula,
+  formatPhone,
+  validatePhone,
+  validateEmail,
+  validatePersonName,
+  validateCompanyName
+} from '~/utils/validators'
 
 const props = defineProps<{
   modelValue: boolean
@@ -23,12 +32,41 @@ const contactEmail = ref('')
 const contactPhone = ref('')
 const isActive = ref(true)
 
+const localErrors = reactive<{
+  company_fiscal_name: string
+  company_short_name: string
+  rif: string
+  office_phone: string
+  contact_name: string
+  contact_email: string
+  contact_phone: string
+}>({
+  company_fiscal_name: '',
+  company_short_name: '',
+  rif: '',
+  office_phone: '',
+  contact_name: '',
+  contact_email: '',
+  contact_phone: ''
+})
+
+const clearLocalErrors = () => {
+  localErrors.company_fiscal_name = ''
+  localErrors.company_short_name = ''
+  localErrors.rif = ''
+  localErrors.office_phone = ''
+  localErrors.contact_name = ''
+  localErrors.contact_email = ''
+  localErrors.contact_phone = ''
+}
+
 const isEditing = computed(() => Boolean(props.clientToEdit))
 
 watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen) {
+      clearLocalErrors()
       if (props.clientToEdit) {
         companyFiscalName.value = props.clientToEdit.company_fiscal_name || ''
         companyShortName.value = props.clientToEdit.company_short_name || ''
@@ -53,9 +91,67 @@ watch(
   { immediate: true }
 )
 
+const handleFiscalNameBlur = () => {
+  if (!companyFiscalName.value.trim()) return
+  localErrors.company_fiscal_name = validateCompanyName(companyFiscalName.value, 3, 'La razón social') || ''
+}
+
+const handleShortNameBlur = () => {
+  if (!companyShortName.value.trim()) return
+  localErrors.company_short_name = validateCompanyName(companyShortName.value, 2, 'El nombre corto') || ''
+}
+
 const handleRifInput = (event: Event) => {
   const target = event.target as HTMLInputElement
-  rif.value = target.value.toUpperCase()
+  const formatted = formatRifOrCedula(target.value)
+  rif.value = formatted
+  target.value = formatted
+  if (localErrors.rif) {
+    localErrors.rif = validateRifOrCedula(rif.value) || ''
+  }
+}
+
+const handleRifBlur = () => {
+  if (!rif.value.trim()) return
+  localErrors.rif = validateRifOrCedula(rif.value) || ''
+}
+
+const handleOfficePhoneInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const formatted = formatPhone(target.value)
+  officePhone.value = formatted
+  target.value = formatted
+  if (localErrors.office_phone) {
+    localErrors.office_phone = validatePhone(officePhone.value, false) || ''
+  }
+}
+
+const handleOfficePhoneBlur = () => {
+  localErrors.office_phone = validatePhone(officePhone.value, false) || ''
+}
+
+const handleContactNameBlur = () => {
+  if (!contactName.value.trim()) return
+  localErrors.contact_name = validatePersonName(contactName.value, 'El nombre de contacto') || ''
+}
+
+const handleContactPhoneInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const formatted = formatPhone(target.value)
+  contactPhone.value = formatted
+  target.value = formatted
+  if (localErrors.contact_phone) {
+    localErrors.contact_phone = validatePhone(contactPhone.value, false) || ''
+  }
+}
+
+const handleContactPhoneBlur = () => {
+  localErrors.contact_phone = validatePhone(contactPhone.value, false) || ''
+}
+
+const handleEmailBlur = () => {
+  if (!contactEmail.value.trim()) return
+  localErrors.contact_email = validateEmail(contactEmail.value) || ''
 }
 
 const handleClose = () => {
@@ -63,6 +159,28 @@ const handleClose = () => {
 }
 
 const handleSubmit = () => {
+  clearLocalErrors()
+
+  const fiscalErr = validateCompanyName(companyFiscalName.value, 3, 'La razón social de la empresa')
+  const shortErr = validateCompanyName(companyShortName.value, 2, 'El nombre corto de la empresa')
+  const rifErr = validateRifOrCedula(rif.value, true)
+  const officePhoneErr = validatePhone(officePhone.value, false)
+  const contactNameErr = validatePersonName(contactName.value, 'El nombre de la persona de contacto')
+  const emailErr = validateEmail(contactEmail.value, true)
+  const contactPhoneErr = validatePhone(contactPhone.value, false)
+
+  if (fiscalErr) localErrors.company_fiscal_name = fiscalErr
+  if (shortErr) localErrors.company_short_name = shortErr
+  if (rifErr) localErrors.rif = rifErr
+  if (officePhoneErr) localErrors.office_phone = officePhoneErr
+  if (contactNameErr) localErrors.contact_name = contactNameErr
+  if (emailErr) localErrors.contact_email = emailErr
+  if (contactPhoneErr) localErrors.contact_phone = contactPhoneErr
+
+  if (fiscalErr || shortErr || rifErr || officePhoneErr || contactNameErr || emailErr || contactPhoneErr) {
+    return
+  }
+
   const payload: CreateClientData = {
     company_fiscal_name: companyFiscalName.value.trim(),
     company_short_name: companyShortName.value.trim(),
@@ -106,7 +224,7 @@ const handleSubmit = () => {
       </div>
 
       <!-- Formulario -->
-      <form class="space-y-4 mt-5" @submit.prevent="handleSubmit">
+      <form class="space-y-4 mt-5" novalidate @submit.prevent="handleSubmit">
         <!-- Razón Social Fiscal -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -116,16 +234,18 @@ const handleSubmit = () => {
             v-model="companyFiscalName"
             type="text"
             required
-            placeholder="Empresa Ejemplo S.A."
+            placeholder="Inversiones Industriales C.A."
             class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
-            :class="{ 'border-red-500': fieldErrors?.company_fiscal_name }"
+            :class="{ 'border-red-500': localErrors.company_fiscal_name || fieldErrors?.company_fiscal_name }"
+            @blur="handleFiscalNameBlur"
+            @input="localErrors.company_fiscal_name = ''"
           >
-          <p v-if="fieldErrors?.company_fiscal_name" class="text-xs text-red-400 mt-1">
-            {{ fieldErrors.company_fiscal_name[0] }}
+          <p v-if="localErrors.company_fiscal_name || fieldErrors?.company_fiscal_name" class="text-xs text-red-400 mt-1">
+            {{ localErrors.company_fiscal_name || fieldErrors?.company_fiscal_name?.[0] }}
           </p>
         </div>
 
-        <!-- Fila: Nombre corto + Número de RIF -->
+        <!-- Fila: Nombre corto + Número de RIF / Cédula -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -135,30 +255,33 @@ const handleSubmit = () => {
               v-model="companyShortName"
               type="text"
               required
-              placeholder="EjemploCo"
+              placeholder="InvIndustriales"
               class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
-              :class="{ 'border-red-500': fieldErrors?.company_short_name }"
+              :class="{ 'border-red-500': localErrors.company_short_name || fieldErrors?.company_short_name }"
+              @blur="handleShortNameBlur"
+              @input="localErrors.company_short_name = ''"
             >
-            <p v-if="fieldErrors?.company_short_name" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.company_short_name[0] }}
+            <p v-if="localErrors.company_short_name || fieldErrors?.company_short_name" class="text-xs text-red-400 mt-1">
+              {{ localErrors.company_short_name || fieldErrors?.company_short_name?.[0] }}
             </p>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">
-              Número de RIF <span class="text-orange-500">*</span>
+              Número de RIF o Cédula <span class="text-orange-500">*</span>
             </label>
             <input
               :value="rif"
               type="text"
               required
-              placeholder="J-XXXXXXXX-X"
+              placeholder="J-12345678-9 o V-12345678"
               class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white placeholder-slate-500 text-sm font-mono focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all uppercase"
-              :class="{ 'border-red-500': fieldErrors?.rif }"
+              :class="{ 'border-red-500': localErrors.rif || fieldErrors?.rif }"
               @input="handleRifInput"
+              @blur="handleRifBlur"
             >
-            <p v-if="fieldErrors?.rif" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.rif[0] }}
+            <p v-if="localErrors.rif || fieldErrors?.rif" class="text-xs text-red-400 mt-1">
+              {{ localErrors.rif || fieldErrors?.rif?.[0] }}
             </p>
           </div>
         </div>
@@ -169,14 +292,16 @@ const handleSubmit = () => {
             Teléfono de oficinas
           </label>
           <input
-            v-model="officePhone"
-            type="text"
-            placeholder="0212-000-0000"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
-            :class="{ 'border-red-500': fieldErrors?.office_phone }"
+            :value="officePhone"
+            type="tel"
+            placeholder="0212-5551234"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white font-mono placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+            :class="{ 'border-red-500': localErrors.office_phone || fieldErrors?.office_phone }"
+            @input="handleOfficePhoneInput"
+            @blur="handleOfficePhoneBlur"
           >
-          <p v-if="fieldErrors?.office_phone" class="text-xs text-red-400 mt-1">
-            {{ fieldErrors.office_phone[0] }}
+          <p v-if="localErrors.office_phone || fieldErrors?.office_phone" class="text-xs text-red-400 mt-1">
+            {{ localErrors.office_phone || fieldErrors?.office_phone?.[0] }}
           </p>
         </div>
 
@@ -201,10 +326,12 @@ const handleSubmit = () => {
             required
             placeholder="Juan Pérez"
             class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
-            :class="{ 'border-red-500': fieldErrors?.contact_name }"
+            :class="{ 'border-red-500': localErrors.contact_name || fieldErrors?.contact_name }"
+            @blur="handleContactNameBlur"
+            @input="localErrors.contact_name = ''"
           >
-          <p v-if="fieldErrors?.contact_name" class="text-xs text-red-400 mt-1">
-            {{ fieldErrors.contact_name[0] }}
+          <p v-if="localErrors.contact_name || fieldErrors?.contact_name" class="text-xs text-red-400 mt-1">
+            {{ localErrors.contact_name || fieldErrors?.contact_name?.[0] }}
           </p>
         </div>
 
@@ -220,26 +347,30 @@ const handleSubmit = () => {
               required
               placeholder="contacto@empresa.com"
               class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
-              :class="{ 'border-red-500': fieldErrors?.contact_email }"
+              :class="{ 'border-red-500': localErrors.contact_email || fieldErrors?.contact_email }"
+              @blur="handleEmailBlur"
+              @input="localErrors.contact_email = ''"
             >
-            <p v-if="fieldErrors?.contact_email" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.contact_email[0] }}
+            <p v-if="localErrors.contact_email || fieldErrors?.contact_email" class="text-xs text-red-400 mt-1">
+              {{ localErrors.contact_email || fieldErrors?.contact_email?.[0] }}
             </p>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">
-              Teléfono
+              Teléfono móvil / directo
             </label>
             <input
-              v-model="contactPhone"
-              type="text"
-              placeholder="0414-000-0000"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
-              :class="{ 'border-red-500': fieldErrors?.contact_phone }"
+              :value="contactPhone"
+              type="tel"
+              placeholder="0414-1234567"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-[#131d33] border border-slate-700/70 text-white font-mono placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+              :class="{ 'border-red-500': localErrors.contact_phone || fieldErrors?.contact_phone }"
+              @input="handleContactPhoneInput"
+              @blur="handleContactPhoneBlur"
             >
-            <p v-if="fieldErrors?.contact_phone" class="text-xs text-red-400 mt-1">
-              {{ fieldErrors.contact_phone[0] }}
+            <p v-if="localErrors.contact_phone || fieldErrors?.contact_phone" class="text-xs text-red-400 mt-1">
+              {{ localErrors.contact_phone || fieldErrors?.contact_phone?.[0] }}
             </p>
           </div>
         </div>

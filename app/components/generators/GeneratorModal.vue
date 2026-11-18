@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, reactive, watch, computed, onMounted } from 'vue'
 import type { GeneratorItem, GeneratorStatus, CreateGeneratorData, UpdateGeneratorData } from '~~/types/generator'
-import type { ClientItem } from '~~/types/client'
+import {
+  formatSerialNumber,
+  validateSerialNumber,
+  validateCapacityKva,
+  validateCompanyName,
+  validateImageFile
+} from '~/utils/validators'
 
 const props = defineProps<{
   modelValue: boolean
@@ -20,7 +26,7 @@ const { clients, fetchClients } = useClients()
 const serialNumber = ref('')
 const model = ref('')
 const name = ref('')
-const capacityKva = ref<number | null>(null)
+const capacityKva = ref<number | string | null>(null)
 const clientId = ref<number | null>(null)
 const status = ref<GeneratorStatus>('warehouse')
 const estimatedArrivalDate = ref('')
@@ -30,6 +36,25 @@ const notes = ref('')
 const photoFile = ref<File | null>(null)
 const photoPreview = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+
+const localErrors = reactive<{
+  serial_number: string
+  capacity_kva: string
+  model: string
+  photo: string
+}>({
+  serial_number: '',
+  capacity_kva: '',
+  model: '',
+  photo: ''
+})
+
+const clearLocalErrors = () => {
+  localErrors.serial_number = ''
+  localErrors.capacity_kva = ''
+  localErrors.model = ''
+  localErrors.photo = ''
+}
 
 const isEditing = computed(() => Boolean(props.generatorToEdit))
 
@@ -51,6 +76,7 @@ watch(
   () => props.modelValue,
   async (isOpen) => {
     if (isOpen) {
+      clearLocalErrors()
       if (clients.value.length === 0) {
         await fetchClients({ status: 'active' })
       }
@@ -85,13 +111,39 @@ watch(
 
 const handleSerialInput = (event: Event) => {
   const target = event.target as HTMLInputElement
-  serialNumber.value = target.value.toUpperCase()
+  const formatted = formatSerialNumber(target.value)
+  serialNumber.value = formatted
+  target.value = formatted
+  if (localErrors.serial_number) {
+    localErrors.serial_number = validateSerialNumber(serialNumber.value) || ''
+  }
+}
+
+const handleSerialBlur = () => {
+  if (!serialNumber.value.trim()) return
+  localErrors.serial_number = validateSerialNumber(serialNumber.value) || ''
+}
+
+const handleCapacityBlur = () => {
+  localErrors.capacity_kva = validateCapacityKva(capacityKva.value, false) || ''
+}
+
+const handleModelBlur = () => {
+  if (!model.value.trim()) return
+  localErrors.model = validateCompanyName(model.value, 3, 'El modelo del generador') || ''
 }
 
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files[0]) {
     const file = target.files[0]
+    const fileErr = validateImageFile(file, 5)
+    if (fileErr) {
+      localErrors.photo = fileErr
+      target.value = ''
+      return
+    }
+    localErrors.photo = ''
     photoFile.value = file
 
     const reader = new FileReader()
@@ -109,6 +161,7 @@ const triggerFileInput = () => {
 const removePhoto = () => {
   photoFile.value = null
   photoPreview.value = null
+  localErrors.photo = ''
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
   }
@@ -119,11 +172,31 @@ const handleClose = () => {
 }
 
 const handleSubmit = () => {
+  clearLocalErrors()
+
+  const serialErr = validateSerialNumber(serialNumber.value)
+  const capacityErr = validateCapacityKva(capacityKva.value, false)
+  const modelErr = validateCompanyName(model.value, 3, 'El modelo o tipo de equipo')
+  const photoErr = validateImageFile(photoFile.value, 5)
+
+  if (serialErr) localErrors.serial_number = serialErr
+  if (capacityErr) localErrors.capacity_kva = capacityErr
+  if (modelErr) localErrors.model = modelErr
+  if (photoErr) localErrors.photo = photoErr
+
+  if (serialErr || capacityErr || modelErr || photoErr) {
+    return
+  }
+
+  const parsedKva = capacityKva.value !== null && capacityKva.value !== undefined && capacityKva.value !== ''
+    ? Number(capacityKva.value)
+    : undefined
+
   const payload: CreateGeneratorData = {
     serial_number: serialNumber.value.trim().toUpperCase(),
     model: model.value.trim(),
     name: name.value.trim() || undefined,
-    capacity_kva: capacityKva.value !== null && capacityKva.value !== undefined ? Number(capacityKva.value) : undefined,
+    capacity_kva: parsedKva,
     client_id: clientId.value ? Number(clientId.value) : undefined,
     status: status.value,
     estimated_arrival_date: estimatedArrivalDate.value || undefined,
@@ -166,7 +239,7 @@ const handleSubmit = () => {
       </div>
 
       <!-- Formulario scrolleable -->
-      <form class="space-y-4 pt-4 overflow-y-auto pr-1 flex-1" @submit.prevent="handleSubmit">
+      <form class="space-y-4 pt-4 overflow-y-auto pr-1 flex-1" novalidate @submit.prevent="handleSubmit">
         <!-- Fila 1: Serial y Capacidad (kVA) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -178,11 +251,13 @@ const handleSubmit = () => {
               required
               :value="serialNumber"
               placeholder="EJ: GEN-2026-0041"
-              class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs font-mono placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
+              class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs font-mono placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all uppercase"
+              :class="{ 'border-red-500': localErrors.serial_number || fieldErrors?.serial_number }"
               @input="handleSerialInput"
+              @blur="handleSerialBlur"
             >
-            <p v-if="fieldErrors?.serial_number" class="text-[11px] text-red-400 mt-1">
-              {{ fieldErrors.serial_number[0] }}
+            <p v-if="localErrors.serial_number || fieldErrors?.serial_number" class="text-[11px] text-red-400 mt-1">
+              {{ localErrors.serial_number || fieldErrors?.serial_number?.[0] }}
             </p>
           </div>
 
@@ -192,17 +267,21 @@ const handleSubmit = () => {
             </label>
             <div class="relative">
               <input
-                v-model.number="capacityKva"
+                v-model="capacityKva"
                 type="number"
                 step="0.1"
-                min="0"
+                min="0.1"
+                max="99999"
                 placeholder="EJ: 150"
                 class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
+                :class="{ 'border-red-500': localErrors.capacity_kva || fieldErrors?.capacity_kva }"
+                @blur="handleCapacityBlur"
+                @input="localErrors.capacity_kva = ''"
               >
               <span class="absolute right-3 top-2 text-xs text-slate-500 font-medium">kVA</span>
             </div>
-            <p v-if="fieldErrors?.capacity_kva" class="text-[11px] text-red-400 mt-1">
-              {{ fieldErrors.capacity_kva[0] }}
+            <p v-if="localErrors.capacity_kva || fieldErrors?.capacity_kva" class="text-[11px] text-red-400 mt-1">
+              {{ localErrors.capacity_kva || fieldErrors?.capacity_kva?.[0] }}
             </p>
           </div>
         </div>
@@ -218,9 +297,12 @@ const handleSubmit = () => {
             required
             placeholder="EJ: Cummins 150 kVA Silent Diésel"
             class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all"
+            :class="{ 'border-red-500': localErrors.model || fieldErrors?.model }"
+            @blur="handleModelBlur"
+            @input="localErrors.model = ''"
           >
-          <p v-if="fieldErrors?.model" class="text-[11px] text-red-400 mt-1">
-            {{ fieldErrors.model[0] }}
+          <p v-if="localErrors.model || fieldErrors?.model" class="text-[11px] text-red-400 mt-1">
+            {{ localErrors.model || fieldErrors?.model?.[0] }}
           </p>
         </div>
 
@@ -295,6 +377,7 @@ const handleSubmit = () => {
           <div
             v-if="!photoPreview"
             class="border-2 border-dashed border-slate-700 hover:border-[#3eb134]/70 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-900/50 hover:bg-slate-900/80 group"
+            :class="{ 'border-red-500': localErrors.photo || fieldErrors?.photo }"
             @click="triggerFileInput"
           >
             <v-icon icon="mdi-camera-plus-outline" size="28" class="text-slate-500 group-hover:text-[#3eb134] mb-1 transition-colors" />
@@ -327,8 +410,8 @@ const handleSubmit = () => {
               </button>
             </div>
           </div>
-          <p v-if="fieldErrors?.photo" class="text-[11px] text-red-400 mt-1">
-            {{ fieldErrors.photo[0] }}
+          <p v-if="localErrors.photo || fieldErrors?.photo" class="text-[11px] text-red-400 mt-1">
+            {{ localErrors.photo || fieldErrors?.photo?.[0] }}
           </p>
         </div>
 
@@ -340,6 +423,7 @@ const handleSubmit = () => {
           <textarea
             v-model="notes"
             rows="2"
+            maxlength="2000"
             placeholder="Información adicional del equipo, condiciones de entrega, placa o transportista..."
             class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#3eb134] focus:ring-1 focus:ring-[#3eb134] transition-all resize-none"
           />

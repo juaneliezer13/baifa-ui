@@ -14,23 +14,20 @@ import type {
 } from '~~/types/auth'
 
 /**
- * Adaptador REST agnóstico para autenticación y registro.
- * Compatible con Laravel Sanctum (baifa-api), Express/NestJS, FastAPI, Go, etc.
+ * Adaptador REST para autenticación y registro contra Laravel Sanctum (baifa-api).
  */
 export class RestAuthAdapter implements AuthService {
   private api: ReturnType<typeof useApi>
   private endpoints: AuthEndpointsConfig
-  private authMode: 'auto' | 'api' | 'mock'
 
   constructor() {
     this.api = useApi()
     const config = useRuntimeConfig()
     this.endpoints = config.public.authEndpoints as AuthEndpointsConfig
-    this.authMode = (config.public.authMode as 'auto' | 'api' | 'mock') || 'auto'
   }
 
   /**
-   * Normaliza la estructura del usuario devuelta por cualquier backend a UserProfile
+   * Normaliza la estructura del usuario devuelta por el backend a UserProfile
    */
   private normalizeUser(rawUser: any): UserProfile {
     if (!rawUser) {
@@ -69,18 +66,12 @@ export class RestAuthAdapter implements AuthService {
   }
 
   /**
-   * Ejecuta el inicio de sesión contra el backend configurado
+   * Ejecuta el inicio de sesión contra el backend
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const cleanEmail = credentials.email.trim().toLowerCase()
     const cleanPassword = credentials.password.trim()
 
-    // 1. Si está en modo mock puro
-    if (this.authMode === 'mock') {
-      return this.mockLogin(cleanEmail, cleanPassword)
-    }
-
-    // 2. Intento de llamada al backend REST
     try {
       const payload = {
         email: cleanEmail,
@@ -90,7 +81,6 @@ export class RestAuthAdapter implements AuthService {
 
       const response = await this.api.post<any>(this.endpoints.login, payload)
 
-      // Extraer token de formatos comunes: Sanctum (access_token), JWT estándar (token), etc.
       const token = response.access_token || response.token || response.data?.token || response.jwt
       const tokenType = response.token_type || 'Bearer'
       const rawUser = response.user || response.data?.user || response.data
@@ -113,15 +103,6 @@ export class RestAuthAdapter implements AuthService {
       }
     } catch (err: unknown) {
       const apiErr = err as ApiErrorResponse
-
-      // En modo 'auto', si el servidor no está disponible o aún no tiene sembrado el usuario demo
-      if (this.authMode === 'auto') {
-        const isDemoAdmin = (cleanEmail === 'admin@admin' || cleanEmail === 'admin@baifa.com.ve') && cleanPassword === '12345678'
-        if (isDemoAdmin && (apiErr.statusCode === 0 || apiErr.statusCode === 422 || apiErr.statusCode === 401)) {
-          console.warn('[Baifa Auth] Usando sesión demo institucional en modo auto.')
-          return this.mockLogin(cleanEmail, cleanPassword)
-        }
-      }
 
       return {
         success: false,
@@ -147,12 +128,6 @@ export class RestAuthAdapter implements AuthService {
       role: 'client'
     }
 
-    // 1. Si está en modo mock puro
-    if (this.authMode === 'mock') {
-      return this.mockRegister(payload)
-    }
-
-    // 2. Intento de registro en el backend REST
     try {
       const response = await this.api.post<any>(this.endpoints.register, payload)
 
@@ -167,12 +142,6 @@ export class RestAuthAdapter implements AuthService {
       }
     } catch (err: unknown) {
       const apiErr = err as ApiErrorResponse
-
-      // En modo 'auto', si el servidor está apagado (status 0), simular éxito para pruebas
-      if (this.authMode === 'auto' && apiErr.statusCode === 0) {
-        console.warn('[Baifa Auth] Backend desconectado en modo auto. Simulando registro local.')
-        return this.mockRegister(payload)
-      }
 
       return {
         success: false,
@@ -190,7 +159,7 @@ export class RestAuthAdapter implements AuthService {
       const response = await this.api.get<any>(this.endpoints.me)
       const rawUser = response.user || response.data?.user || response.data
       return this.normalizeUser(rawUser)
-    } catch (err: unknown) {
+    } catch {
       return null
     }
   }
@@ -202,8 +171,7 @@ export class RestAuthAdapter implements AuthService {
     try {
       await this.api.post(this.endpoints.logout, {})
     } catch {
-      // Si la revocación en el servidor falla (ej. ya caducó o no hay red),
-      // continuamos para limpiar la sesión local en el cliente.
+      // Si la revocación en el servidor falla, continuamos para limpiar la sesión local.
     }
   }
 
@@ -213,34 +181,12 @@ export class RestAuthAdapter implements AuthService {
   async forgotPassword(data: ForgotPasswordData): Promise<ForgotPasswordResponse> {
     const cleanEmail = data.email.trim().toLowerCase()
 
-    // 1. Si está en modo mock puro
-    if (this.authMode === 'mock') {
-      const isBlocked = cleanEmail === 'admin@baifa.com.ve' || cleanEmail === 'cliente.real@empresa.com'
-      if (isBlocked) {
-        return {
-          success: false,
-          message: 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.',
-          errors: {
-            email: ['Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.']
-          }
-        }
-      }
-      return {
-        success: true,
-        message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.',
-        reset_url: `http://localhost:15001/reset-password?token=mock_demo_token&email=${encodeURIComponent(cleanEmail)}`
-      }
-    }
-
-    // 2. Llamada REST al backend
     try {
       const endpoint = this.endpoints.forgotPassword || '/v1/auth/forgot-password'
       const response = await this.api.post<any>(endpoint, { email: cleanEmail })
       return {
         success: true,
-        message: response.message || 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.',
-        reset_url: response.reset_url,
-        token: response.token
+        message: response.message || 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.'
       }
     } catch (err: unknown) {
       const apiErr = err as ApiErrorResponse
@@ -258,25 +204,6 @@ export class RestAuthAdapter implements AuthService {
   async resetPassword(data: ResetPasswordData): Promise<ResetPasswordResponse> {
     const cleanEmail = data.email.trim().toLowerCase()
 
-    // 1. Si está en modo mock puro
-    if (this.authMode === 'mock') {
-      const isBlocked = cleanEmail === 'admin@baifa.com.ve' || cleanEmail === 'cliente.real@empresa.com'
-      if (isBlocked) {
-        return {
-          success: false,
-          message: 'Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.',
-          errors: {
-            email: ['Por motivos de seguridad, el restablecimiento de contraseña no está disponible para las cuentas institucionales de prueba.']
-          }
-        }
-      }
-      return {
-        success: true,
-        message: 'Tu contraseña ha sido restablecida exitosamente (Demo).'
-      }
-    }
-
-    // 2. Llamada REST al backend
     try {
       const endpoint = this.endpoints.resetPassword || '/v1/auth/reset-password'
       const response = await this.api.post<any>(endpoint, {
@@ -295,52 +222,6 @@ export class RestAuthAdapter implements AuthService {
         success: false,
         message: apiErr.message || 'No fue posible restablecer la contraseña.',
         errors: apiErr.errors
-      }
-    }
-  }
-
-  /**
-   * Fallback de inicio de sesión simulado
-   */
-  private mockLogin(email: string, pass: string): AuthResponse {
-    const isValid = (email === 'admin@admin' && pass === '12345678')
-      || (email === 'admin@baifa.com.ve' && pass === '12345678')
-
-    if (isValid) {
-      return {
-        success: true,
-        token: 'baifa-demo-bearer-token-2026',
-        tokenType: 'Bearer',
-        user: {
-          id: 1,
-          name: 'Adriana Morales',
-          email: 'admin@baifa.com.ve',
-          role: 'admin',
-          roleLabel: 'Superadministrador'
-        },
-        message: 'Inicio de sesión exitoso (Demo)'
-      }
-    }
-
-    return {
-      success: false,
-      message: 'Las credenciales proporcionadas son incorrectas.'
-    }
-  }
-
-  /**
-   * Fallback de registro simulado
-   */
-  private mockRegister(data: { name: string; email: string }): RegisterResponse {
-    return {
-      success: true,
-      message: 'Solicitud de acceso de cliente enviada exitosamente (Demo)',
-      user: {
-        id: Date.now(),
-        name: data.name,
-        email: data.email,
-        role: 'client',
-        roleLabel: 'Cliente'
       }
     }
   }

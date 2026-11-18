@@ -102,15 +102,15 @@ const handleLogout = async () => {
             class="flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/70 border border-transparent hover:border-slate-700/50 transition-colors cursor-pointer group"
           >
             <div class="w-9 h-9 rounded-full bg-[#3eb134] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
-              {{ user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2) : 'AM' }}
+              {{ user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2) : 'U' }}
             </div>
             <div class="overflow-hidden min-w-0 flex-1">
               <div class="text-xs font-semibold text-white truncate leading-tight group-hover:text-[#3eb134] transition-colors">
-                {{ user?.name || 'Adriana Morales' }}
+                {{ user?.name || 'Usuario' }}
               </div>
               <div class="mt-1">
                 <span class="inline-block text-[10px] font-medium text-red-400 bg-red-950/60 border border-red-800/40 px-2 py-0.5 rounded-full leading-none">
-                  {{ user?.roleLabel || 'Superadministrador' }}
+                  {{ user?.roleLabel || 'Usuario' }}
                 </span>
               </div>
             </div>
@@ -122,10 +122,10 @@ const handleLogout = async () => {
         <div class="w-60 bg-[#0f172a] border border-slate-700/70 rounded-2xl p-2 shadow-2xl space-y-1 text-slate-200">
           <div class="px-3 py-2 border-b border-slate-800 mb-1">
             <div class="text-xs font-semibold text-white truncate">
-              {{ user?.name || 'Adriana Morales' }}
+              {{ user?.name || 'Usuario' }}
             </div>
             <div class="text-[11px] text-slate-400 truncate mt-0.5">
-              {{ user?.email || 'admin@baifa.com.ve' }}
+              {{ user?.email || '' }}
             </div>
           </div>
 
