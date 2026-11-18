@@ -36,6 +36,7 @@ const selectedClient = ref<ClientItem | null>(null)
 const clientToDelete = ref<ClientItem | null>(null)
 
 const { user } = useAuth()
+const canManageClients = computed(() => ['admin', 'manager'].includes(user.value?.role || ''))
 
 onMounted(async () => {
   if (user.value?.role === 'client') {
@@ -131,6 +132,7 @@ const handleToggleStatus = async (client: ClientItem) => {
       </div>
 
       <button
+        v-if="canManageClients"
         type="button"
         class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 active:scale-[0.99] text-white font-semibold text-sm transition-all shadow-lg shadow-orange-950/40 cursor-pointer self-start sm:self-auto"
         @click="openCreateModal"
@@ -138,6 +140,13 @@ const handleToggleStatus = async (client: ClientItem) => {
         <v-icon icon="mdi-plus" size="18" />
         <span>Nuevo cliente</span>
       </button>
+      <div
+        v-else
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-950/40 border border-sky-800/40 text-sky-300 text-xs font-medium self-start sm:self-auto"
+      >
+        <v-icon icon="mdi-eye-outline" size="16" class="text-sky-400" />
+        <span>Modo consulta (Empleado)</span>
+      </div>
     </div>
 
     <!-- Alertas de Éxito y Error -->
@@ -325,7 +334,7 @@ const handleToggleStatus = async (client: ClientItem) => {
 
               <!-- Acciones (Editar, Alternar Estado, Eliminar) -->
               <td class="py-4 px-5 text-right whitespace-nowrap">
-                <div class="flex items-center justify-end gap-1.5">
+                <div v-if="canManageClients" class="flex items-center justify-end gap-1.5">
                   <!-- Editar -->
                   <button
                     type="button"
@@ -357,6 +366,7 @@ const handleToggleStatus = async (client: ClientItem) => {
                     <v-icon icon="mdi-delete-outline" size="18" />
                   </button>
                 </div>
+                <span v-else class="text-[11px] text-slate-500 italic">Solo consulta</span>
               </td>
             </tr>
           </tbody>

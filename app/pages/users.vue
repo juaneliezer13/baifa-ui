@@ -93,7 +93,7 @@ const getRoleBadge = (role: string): { label: string; class: string } => {
       }
     case 'employee':
       return {
-        label: 'Operador',
+        label: 'Empleado',
         class: 'text-sky-400 bg-sky-950/50 border-sky-800/40'
       }
     case 'client':
@@ -276,7 +276,7 @@ const handleToggleStatus = async (user: SystemUser) => {
           <option value="all">Todos los roles</option>
           <option value="admin">Administrador</option>
           <option value="manager">Jefe / Gerente</option>
-          <option value="employee">Operador</option>
+          <option value="employee">Empleado</option>
           <option value="client">Cliente</option>
         </select>
 
@@ -393,9 +393,14 @@ const handleToggleStatus = async (user: SystemUser) => {
 
               <!-- Columna: Acciones -->
               <td class="py-4 px-6 text-right">
-                <!-- Acciones para la cuenta propia (Bloqueadas con indicación visual) -->
-                <div v-if="u.is_self" class="flex items-center justify-end gap-1 text-slate-500">
-                  <span class="text-[10px] text-slate-500 italic mr-1">Gestionar en Mi Perfil</span>
+                <!-- Acciones para la cuenta propia (Enlace directo a Mi Perfil) -->
+                <div v-if="u.is_self" class="flex items-center justify-end gap-1.5 text-slate-500">
+                  <NuxtLink
+                    to="/profile"
+                    class="text-[11px] font-semibold text-[#3eb134] hover:text-[#349b2c] hover:underline mr-1"
+                  >
+                    Gestionar en Mi Perfil &rarr;
+                  </NuxtLink>
                   <button
                     type="button"
                     class="p-1.5 rounded-lg opacity-40 cursor-not-allowed text-slate-600 hover:text-slate-600"

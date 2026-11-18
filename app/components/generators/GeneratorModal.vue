@@ -28,7 +28,7 @@ const model = ref('')
 const name = ref('')
 const capacityKva = ref<number | string | null>(null)
 const clientId = ref<number | null>(null)
-const status = ref<GeneratorStatus>('warehouse')
+const status = ref<GeneratorStatus>('purchase_order')
 const estimatedArrivalDate = ref('')
 const notes = ref('')
 
@@ -59,11 +59,13 @@ const clearLocalErrors = () => {
 const isEditing = computed(() => Boolean(props.generatorToEdit))
 
 const statusOptions: { value: GeneratorStatus; label: string; icon: string; color: string }[] = [
-  { value: 'warehouse', label: 'En Almacén', icon: 'mdi-warehouse', color: 'text-violet-400' },
-  { value: 'in_transit', label: 'En Tránsito', icon: 'mdi-truck-fast-outline', color: 'text-sky-400' },
-  { value: 'checkpoint', label: 'En Punto de Control', icon: 'mdi-map-marker-radius-outline', color: 'text-yellow-400' },
-  { value: 'delivered', label: 'Entregado en Locación', icon: 'mdi-check-circle-outline', color: 'text-green-400' },
-  { value: 'installed', label: 'Instalado y Operativo', icon: 'mdi-lightning-bolt-circle', color: 'text-emerald-300' }
+  { value: 'purchase_order', label: 'Orden de Compra', icon: 'mdi-clipboard-text-outline', color: 'text-violet-400' },
+  { value: 'in_production', label: 'En Producción', icon: 'mdi-factory', color: 'text-amber-400' },
+  { value: 'origin_customs', label: 'En Aduana de Origen', icon: 'mdi-stamper', color: 'text-orange-400' },
+  { value: 'maritime_transit', label: 'En Tránsito Marítimo', icon: 'mdi-ferry', color: 'text-sky-400' },
+  { value: 'destination_customs', label: 'En Aduana Destino', icon: 'mdi-anchor', color: 'text-yellow-400' },
+  { value: 'baifa_warehouse', label: 'En Almacén BaiFa', icon: 'mdi-warehouse', color: 'text-cyan-400' },
+  { value: 'delivered', label: 'Entregado', icon: 'mdi-check-circle-outline', color: 'text-emerald-400' }
 ]
 
 onMounted(async () => {
@@ -87,7 +89,7 @@ watch(
         name.value = props.generatorToEdit.name || ''
         capacityKva.value = props.generatorToEdit.capacity_kva ?? null
         clientId.value = props.generatorToEdit.client_id ?? null
-        status.value = props.generatorToEdit.status || 'warehouse'
+        status.value = props.generatorToEdit.status || 'purchase_order'
         estimatedArrivalDate.value = props.generatorToEdit.estimated_arrival_date || ''
         notes.value = props.generatorToEdit.notes || ''
         photoPreview.value = props.generatorToEdit.photo_url || null
@@ -98,7 +100,7 @@ watch(
         name.value = ''
         capacityKva.value = null
         clientId.value = null
-        status.value = 'warehouse'
+        status.value = 'purchase_order'
         estimatedArrivalDate.value = ''
         notes.value = ''
         photoPreview.value = null

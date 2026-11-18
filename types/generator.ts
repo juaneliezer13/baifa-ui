@@ -2,7 +2,14 @@
  * Estándar TypeScript 2026 - Catálogo de Generadores y Checkpoints para BaiFa Power
  */
 
-export type GeneratorStatus = 'warehouse' | 'in_transit' | 'checkpoint' | 'delivered' | 'installed'
+export type GeneratorStatus =
+  | 'purchase_order'
+  | 'in_production'
+  | 'origin_customs'
+  | 'maritime_transit'
+  | 'destination_customs'
+  | 'baifa_warehouse'
+  | 'delivered'
 
 export interface GeneratorClientSummary {
   id: number
@@ -56,11 +63,13 @@ export type UpdateGeneratorData = Partial<CreateGeneratorData>
 
 export interface GeneratorSummaryMetrics {
   total: number
-  warehouse: number
-  in_transit: number
-  checkpoint: number
+  purchase_order: number
+  in_production: number
+  origin_customs: number
+  maritime_transit: number
+  destination_customs: number
+  baifa_warehouse: number
   delivered: number
-  installed: number
 }
 
 export interface GeneratorFilters {

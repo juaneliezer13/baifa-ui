@@ -82,6 +82,19 @@ const handleLogout = async () => {
           <v-icon icon="mdi-flash-outline" size="16" />
           <span>Mis Generadores</span>
         </NuxtLink>
+
+        <NuxtLink
+          to="/profile"
+          class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+          :class="[
+            route.path.startsWith('/profile')
+              ? 'bg-[#3eb134]/15 text-[#3eb134] border border-[#3eb134]/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          ]"
+        >
+          <v-icon icon="mdi-account-cog-outline" size="16" />
+          <span>Mi Perfil</span>
+        </NuxtLink>
       </nav>
 
       <!-- Menú de Usuario a la derecha -->
@@ -137,15 +150,15 @@ const handleLogout = async () => {
               </div>
             </div>
 
-            <!-- Opción Ver Perfil -->
-            <a
-              href="#"
+            <!-- Opción Mi Perfil -->
+            <NuxtLink
+              to="/profile"
               class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-              @click.prevent
+              @click="isMenuOpen = false"
             >
-              <v-icon icon="mdi-account-outline" size="18" class="text-slate-400" />
-              <span>Ver perfil</span>
-            </a>
+              <v-icon icon="mdi-account-cog-outline" size="18" class="text-[#3eb134]" />
+              <span>Mi perfil</span>
+            </NuxtLink>
 
             <!-- Opción Cerrar Sesión -->
             <button

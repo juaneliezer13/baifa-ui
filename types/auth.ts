@@ -92,6 +92,26 @@ export interface ResetPasswordResponse {
   errors?: Record<string, string[]>
 }
 
+export interface UpdateProfileData {
+  name?: string
+  email?: string
+  current_password?: string
+  password?: string
+  password_confirmation?: string
+  company_fiscal_name?: string
+  company_short_name?: string
+  rif?: string
+  office_phone?: string | null
+  contact_phone?: string | null
+}
+
+export interface UpdateProfileResponse {
+  success: boolean
+  message: string
+  user?: UserProfile
+  errors?: Record<string, string[]>
+}
+
 export interface ApiErrorResponse {
   message: string
   errors?: Record<string, string[]>

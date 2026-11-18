@@ -37,14 +37,14 @@ const roleOptions = computed<{ value: SystemUserRole; label: string }[]>(() => {
   return [
     { value: 'admin', label: 'Administrador' },
     { value: 'manager', label: 'Jefe / Gerente' },
-    { value: 'employee', label: 'Operador' },
+    { value: 'employee', label: 'Empleado (Acceso Operativo Limitado)' },
   ]
 })
 
 const roleDescriptions: Record<SystemUserRole, string> = {
-  admin: 'Acceso total al sistema, configuración operativa y gestión integral de usuarios y generadores.',
-  manager: 'Supervisión operativa, consulta de métricas, inventario y aprobación de solicitudes de clientes.',
-  employee: 'Puede actualizar estados de generadores y consultar clientes. Sin acceso a gestión de usuarios.',
+  admin: 'Acceso total al sistema, configuración operativa y gestión integral de usuarios, clientes, generadores y reportes.',
+  manager: 'Supervisión operativa, consulta de métricas, gestión de clientes, inventario y tablero de reportes ejecutivos.',
+  employee: 'Acceso operativo limitado: gestión de generadores, actualización de puntos de control en ruta y consulta de clientes. Sin acceso a gestión de usuarios, reportes ejecutivos ni eliminación de registros.',
   client: 'Acceso exclusivo al portal de autogestión, consulta de pedidos propios y seguimiento de maquinaria.',
 }
 

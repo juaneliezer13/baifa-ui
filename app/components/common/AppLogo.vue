@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
-  variant?: 'green' | 'white'
+  variant?: 'green' | 'white' | 'dark' | 'light'
   size?: 'sm' | 'md' | 'lg'
 }
 
@@ -9,28 +11,32 @@ const {
   size = 'md'
 } = defineProps<Props>()
 
-const colorClass = computed(() => {
-  return variant === 'green' ? 'text-[#3eb134]' : 'text-white'
+const logoSrc = computed(() => {
+  return variant === 'white' || variant === 'light'
+    ? '/images/logo-baifa-white.png'
+    : '/images/logo-baifa-green.png'
 })
 
 const sizeClass = computed(() => {
   switch (size) {
     case 'sm':
-      return 'text-xl'
+      return 'h-6'
     case 'lg':
-      return 'text-4xl'
+      return 'h-11'
     case 'md':
     default:
-      return 'text-2xl'
+      return 'h-8'
   }
 })
 </script>
 
 <template>
   <div class="inline-flex items-center select-none">
-    <div class="flex items-baseline leading-none font-black italic tracking-tighter" :class="[colorClass, sizeClass]">
-      <span>BaiFa</span>
-      <span class="text-[0.45em] ml-0.5 font-bold not-italic">®</span>
-    </div>
+    <img
+      :src="logoSrc"
+      alt="BaiFa® Power"
+      class="w-auto object-contain"
+      :class="sizeClass"
+    >
   </div>
 </template>

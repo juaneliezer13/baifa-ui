@@ -21,25 +21,27 @@ const emit = defineEmits<{
   }): void
 }>()
 
-const newStatus = ref<GeneratorStatus>('in_transit')
+const newStatus = ref<GeneratorStatus>('in_production')
 const checkpointName = ref('')
 const eventDate = ref('')
 const notes = ref('')
 const checkpointNameError = ref('')
 
 const statusOptions: { value: GeneratorStatus; label: string; icon: string; defaultCheckpoint: string }[] = [
-  { value: 'warehouse', label: 'En Almacén', icon: 'mdi-warehouse', defaultCheckpoint: 'Almacén Central Valencia' },
-  { value: 'in_transit', label: 'En Tránsito', icon: 'mdi-truck-fast-outline', defaultCheckpoint: 'Despacho en Ruta' },
-  { value: 'checkpoint', label: 'En Punto de Control', icon: 'mdi-map-marker-radius-outline', defaultCheckpoint: 'Punto de Control en Ruta' },
-  { value: 'delivered', label: 'Entregado en Locación', icon: 'mdi-check-circle-outline', defaultCheckpoint: 'Entrega en Locación del Cliente' },
-  { value: 'installed', label: 'Instalado y Operativo', icon: 'mdi-lightning-bolt-circle', defaultCheckpoint: 'Instalación y Puesta en Servicio' }
+  { value: 'purchase_order', label: 'Orden de Compra', icon: 'mdi-clipboard-text-outline', defaultCheckpoint: 'Orden de Compra Emitida' },
+  { value: 'in_production', label: 'En Producción', icon: 'mdi-factory', defaultCheckpoint: 'Planta de Ensamblaje BaiFa' },
+  { value: 'origin_customs', label: 'En Aduana de Origen', icon: 'mdi-stamper', defaultCheckpoint: 'Aduana Portuaria de Origen' },
+  { value: 'maritime_transit', label: 'En Tránsito Marítimo', icon: 'mdi-ferry', defaultCheckpoint: 'Tránsito Marítimo Internacional' },
+  { value: 'destination_customs', label: 'En Aduana Destino', icon: 'mdi-anchor', defaultCheckpoint: 'Aduana Puerto Cabello / La Guaira' },
+  { value: 'baifa_warehouse', label: 'En Almacén BaiFa', icon: 'mdi-warehouse', defaultCheckpoint: 'Almacén Central BaiFa Valencia' },
+  { value: 'delivered', label: 'Entregado', icon: 'mdi-check-circle-outline', defaultCheckpoint: 'Entregado en Instalaciones del Cliente' }
 ]
 
 watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen && props.generator) {
-      newStatus.value = props.generator.status || 'warehouse'
+      newStatus.value = props.generator.status || 'purchase_order'
       checkpointName.value = ''
       eventDate.value = ''
       notes.value = props.generator.notes || ''

@@ -51,11 +51,41 @@ const activeClientsCount = computed(() => {
 })
 
 const kpiCards = computed<KpiCard[]>(() => [
-  { label: 'Generadores activos', value: summary.value.total, icon: 'mdi-flash', color: 'text-[#3eb134]', bgColor: 'bg-[#3eb134]/10' },
-  { label: 'En Warehouse', value: summary.value.warehouse, icon: 'mdi-home-outline', color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
-  { label: 'En Tránsito', value: summary.value.in_transit, icon: 'mdi-truck-outline', color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
-  { label: 'Entregados/Instalados', value: summary.value.delivered + summary.value.installed, icon: 'mdi-check', color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
-  { label: 'Clientes activos', value: activeClientsCount.value, icon: 'mdi-account-group-outline', color: 'text-amber-500', bgColor: 'bg-amber-500/10' }
+  {
+    label: 'Generadores registrados',
+    value: summary.value.total,
+    icon: 'mdi-flash',
+    color: 'text-[#3eb134]',
+    bgColor: 'bg-[#3eb134]/10'
+  },
+  {
+    label: 'Orden y Producción',
+    value: summary.value.purchase_order + summary.value.in_production,
+    icon: 'mdi-factory',
+    color: 'text-amber-400',
+    bgColor: 'bg-amber-500/10'
+  },
+  {
+    label: 'Tránsito y Aduanas',
+    value: summary.value.origin_customs + summary.value.maritime_transit + summary.value.destination_customs,
+    icon: 'mdi-ferry',
+    color: 'text-sky-400',
+    bgColor: 'bg-sky-500/10'
+  },
+  {
+    label: 'En Almacén / Entregados',
+    value: `${summary.value.baifa_warehouse} / ${summary.value.delivered}`,
+    icon: 'mdi-check-circle-outline',
+    color: 'text-emerald-400',
+    bgColor: 'bg-emerald-500/10'
+  },
+  {
+    label: 'Clientes activos',
+    value: activeClientsCount.value,
+    icon: 'mdi-account-group-outline',
+    color: 'text-violet-400',
+    bgColor: 'bg-violet-500/10'
+  }
 ])
 
 // Pipeline de estados
@@ -68,11 +98,13 @@ interface PipelineStep {
 }
 
 const pipelineSteps = computed<PipelineStep[]>(() => [
-  { label: 'En Warehouse', count: summary.value.warehouse, borderClass: 'border-purple-800/40', bgClass: 'bg-purple-950/20', textClass: 'text-purple-400' },
-  { label: 'En Tránsito', count: summary.value.in_transit, borderClass: 'border-sky-800/40', bgClass: 'bg-sky-950/20', textClass: 'text-sky-400' },
-  { label: 'En Punto de Control', count: summary.value.checkpoint, borderClass: 'border-amber-800/40', bgClass: 'bg-amber-950/20', textClass: 'text-amber-400' },
-  { label: 'Entregado', count: summary.value.delivered, borderClass: 'border-emerald-800/40', bgClass: 'bg-emerald-950/20', textClass: 'text-emerald-400' },
-  { label: 'Instalado', count: summary.value.installed, borderClass: 'border-green-800/40', bgClass: 'bg-green-950/20', textClass: 'text-green-400' }
+  { label: 'Orden de Compra', count: summary.value.purchase_order, borderClass: 'border-violet-800/40', bgClass: 'bg-violet-950/20', textClass: 'text-violet-400' },
+  { label: 'En Producción', count: summary.value.in_production, borderClass: 'border-amber-800/40', bgClass: 'bg-amber-950/20', textClass: 'text-amber-400' },
+  { label: 'En Aduana de Origen', count: summary.value.origin_customs, borderClass: 'border-orange-800/40', bgClass: 'bg-orange-950/20', textClass: 'text-orange-400' },
+  { label: 'En Tránsito Marítimo', count: summary.value.maritime_transit, borderClass: 'border-sky-800/40', bgClass: 'bg-sky-950/20', textClass: 'text-sky-400' },
+  { label: 'En Aduana Destino', count: summary.value.destination_customs, borderClass: 'border-yellow-800/40', bgClass: 'bg-yellow-950/20', textClass: 'text-yellow-400' },
+  { label: 'En Almacén BaiFa', count: summary.value.baifa_warehouse, borderClass: 'border-cyan-800/40', bgClass: 'bg-cyan-950/20', textClass: 'text-cyan-400' },
+  { label: 'Entregado', count: summary.value.delivered, borderClass: 'border-emerald-800/40', bgClass: 'bg-emerald-950/20', textClass: 'text-emerald-400' }
 ])
 
 // Generadores recientes (datos reales desde la API)
@@ -182,17 +214,17 @@ const systemUsers = computed<DashboardUser[]>(() => {
           Pipeline de generadores activos
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 items-center">
           <div
             v-for="(step, index) in pipelineSteps"
             :key="step.label"
             class="relative flex items-center"
           >
             <div
-              class="w-full border rounded-xl p-4 transition-all"
+              class="w-full border rounded-xl p-3.5 transition-all"
               :class="[step.borderClass, step.bgClass]"
             >
-              <span class="block text-xs font-medium leading-none mb-2" :class="step.textClass">
+              <span class="block text-[11px] font-medium leading-tight mb-2 truncate" :class="step.textClass" :title="step.label">
                 {{ step.label }}
               </span>
               <span class="text-2xl font-bold text-white">
@@ -204,8 +236,8 @@ const systemUsers = computed<DashboardUser[]>(() => {
             <v-icon
               v-if="index < pipelineSteps.length - 1"
               icon="mdi-chevron-right"
-              size="16"
-              class="hidden md:block absolute -right-3.5 z-10 text-slate-600"
+              size="14"
+              class="hidden xl:block absolute -right-3 z-10 text-slate-600"
             />
           </div>
         </div>

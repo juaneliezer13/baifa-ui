@@ -60,6 +60,9 @@ const previewImage = ref<string | null>(null)
 const canManage = computed(() => {
   return ['admin', 'manager', 'employee'].includes(user.value?.role || '')
 })
+const canDelete = computed(() => {
+  return ['admin', 'manager'].includes(user.value?.role || '')
+})
 
 onMounted(async () => {
   await Promise.all([fetchGenerators(), fetchSummary()])
@@ -240,72 +243,100 @@ const handleConfirmDelete = async () => {
       </button>
     </div>
 
-    <!-- Tarjetas de Métricas de Inventario -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+    <!-- Tarjetas de Métricas de Inventario (7 Estados + Total) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3">
       <!-- Total Generadores -->
-      <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+      <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-[11px] font-medium">
           <span>Total Equipos</span>
-          <v-icon icon="mdi-engine" size="18" class="text-slate-400" />
+          <v-icon icon="mdi-engine" size="16" class="text-slate-400" />
         </div>
-        <div class="mt-3">
-          <span class="text-2xl font-bold text-white tracking-tight">{{ summary.total }}</span>
-          <span class="text-[11px] text-slate-500 ml-1.5">registrados</span>
-        </div>
-      </div>
-
-      <!-- En Almacén -->
-      <div class="bg-[#0f172a] border border-violet-500/20 rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between text-violet-400 text-xs font-medium">
-          <span>En Almacén</span>
-          <v-icon icon="mdi-warehouse" size="18" class="text-violet-400" />
-        </div>
-        <div class="mt-3">
-          <span class="text-2xl font-bold text-violet-300 tracking-tight">{{ summary.warehouse }}</span>
-          <span class="text-[11px] text-slate-500 ml-1.5">disponibles</span>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-white tracking-tight">{{ summary.total }}</span>
         </div>
       </div>
 
-      <!-- En Tránsito -->
-      <div class="bg-[#0f172a] border border-sky-500/20 rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between text-sky-400 text-xs font-medium">
-          <span>En Tránsito</span>
-          <v-icon icon="mdi-truck-fast-outline" size="18" class="text-sky-400" />
+      <!-- Orden de Compra -->
+      <div class="bg-[#0f172a] border border-violet-500/20 rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-violet-400 text-[11px] font-medium">
+          <span class="truncate">Orden de Compra</span>
+          <v-icon icon="mdi-clipboard-text-outline" size="16" class="text-violet-400 shrink-0" />
         </div>
-        <div class="mt-3">
-          <span class="text-2xl font-bold text-sky-300 tracking-tight">{{ summary.in_transit }}</span>
-          <span class="text-[11px] text-slate-500 ml-1.5">en ruta</span>
-        </div>
-      </div>
-
-      <!-- En Punto de Control -->
-      <div class="bg-[#0f172a] border border-yellow-500/20 rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between text-yellow-400 text-xs font-medium">
-          <span>En Checkpoint</span>
-          <v-icon icon="mdi-map-marker-radius-outline" size="18" class="text-yellow-400" />
-        </div>
-        <div class="mt-3">
-          <span class="text-2xl font-bold text-yellow-300 tracking-tight">{{ summary.checkpoint }}</span>
-          <span class="text-[11px] text-slate-500 ml-1.5">en parada</span>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-violet-300 tracking-tight">{{ summary.purchase_order }}</span>
         </div>
       </div>
 
-      <!-- Entregados e Instalados -->
-      <div class="bg-[#0f172a] border border-emerald-500/20 rounded-2xl p-4 flex flex-col justify-between col-span-2 sm:col-span-1">
-        <div class="flex items-center justify-between text-emerald-400 text-xs font-medium">
-          <span>Entregados / Inst.</span>
-          <v-icon icon="mdi-check-all" size="18" class="text-emerald-400" />
+      <!-- En Producción -->
+      <div class="bg-[#0f172a] border border-amber-500/20 rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-amber-400 text-[11px] font-medium">
+          <span class="truncate">En Producción</span>
+          <v-icon icon="mdi-factory" size="16" class="text-amber-400 shrink-0" />
         </div>
-        <div class="mt-3">
-          <span class="text-2xl font-bold text-emerald-300 tracking-tight">{{ summary.delivered + summary.installed }}</span>
-          <span class="text-[11px] text-slate-500 ml-1.5">completados</span>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-amber-300 tracking-tight">{{ summary.in_production }}</span>
+        </div>
+      </div>
+
+      <!-- En Aduana de Origen -->
+      <div class="bg-[#0f172a] border border-orange-500/20 rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-orange-400 text-[11px] font-medium">
+          <span class="truncate">Aduana Origen</span>
+          <v-icon icon="mdi-stamper" size="16" class="text-orange-400 shrink-0" />
+        </div>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-orange-300 tracking-tight">{{ summary.origin_customs }}</span>
+        </div>
+      </div>
+
+      <!-- En Tránsito Marítimo -->
+      <div class="bg-[#0f172a] border border-sky-500/20 rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-sky-400 text-[11px] font-medium">
+          <span class="truncate">Tránsito Marítimo</span>
+          <v-icon icon="mdi-ferry" size="16" class="text-sky-400 shrink-0" />
+        </div>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-sky-300 tracking-tight">{{ summary.maritime_transit }}</span>
+        </div>
+      </div>
+
+      <!-- En Aduana Destino -->
+      <div class="bg-[#0f172a] border border-yellow-500/20 rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-yellow-400 text-[11px] font-medium">
+          <span class="truncate">Aduana Destino</span>
+          <v-icon icon="mdi-anchor" size="16" class="text-yellow-400 shrink-0" />
+        </div>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-yellow-300 tracking-tight">{{ summary.destination_customs }}</span>
+        </div>
+      </div>
+
+      <!-- En Almacén BaiFa -->
+      <div class="bg-[#0f172a] border border-cyan-500/20 rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-cyan-400 text-[11px] font-medium">
+          <span class="truncate">Almacén BaiFa</span>
+          <v-icon icon="mdi-warehouse" size="16" class="text-cyan-400 shrink-0" />
+        </div>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-cyan-300 tracking-tight">{{ summary.baifa_warehouse }}</span>
+        </div>
+      </div>
+
+      <!-- Entregado -->
+      <div class="bg-[#0f172a] border border-emerald-500/20 rounded-2xl p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-emerald-400 text-[11px] font-medium">
+          <span class="truncate">Entregados</span>
+          <v-icon icon="mdi-check-circle-outline" size="16" class="text-emerald-400 shrink-0" />
+        </div>
+        <div class="mt-2.5">
+          <span class="text-xl font-bold text-emerald-300 tracking-tight">{{ summary.delivered }}</span>
         </div>
       </div>
     </div>
 
     <!-- Barra de Filtros y Búsqueda -->
     <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-4 space-y-3">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
         <!-- Campo de Búsqueda -->
         <div class="relative flex-1">
           <v-icon
@@ -329,8 +360,8 @@ const handleConfirmDelete = async () => {
           </button>
         </div>
 
-        <!-- Chips de Filtro por Estado -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 shrink-0">
+        <!-- Chips de Filtro por Estado (7 Estados) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 xl:pb-0 shrink-0">
           <button
             type="button"
             class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
@@ -344,52 +375,72 @@ const handleConfirmDelete = async () => {
           <button
             type="button"
             class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-            :class="selectedStatusFilter === 'warehouse'
+            :class="selectedStatusFilter === 'purchase_order'
               ? 'bg-violet-600 text-white'
               : 'bg-slate-800/80 text-violet-400 hover:text-white hover:bg-slate-700'"
-            @click="selectedStatusFilter = 'warehouse'"
+            @click="selectedStatusFilter = 'purchase_order'"
           >
-            Almacén
+            Orden de Compra
           </button>
           <button
             type="button"
             class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-            :class="selectedStatusFilter === 'in_transit'
+            :class="selectedStatusFilter === 'in_production'
+              ? 'bg-amber-600 text-white'
+              : 'bg-slate-800/80 text-amber-400 hover:text-white hover:bg-slate-700'"
+            @click="selectedStatusFilter = 'in_production'"
+          >
+            En Producción
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
+            :class="selectedStatusFilter === 'origin_customs'
+              ? 'bg-orange-600 text-white'
+              : 'bg-slate-800/80 text-orange-400 hover:text-white hover:bg-slate-700'"
+            @click="selectedStatusFilter = 'origin_customs'"
+          >
+            Aduana Origen
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
+            :class="selectedStatusFilter === 'maritime_transit'
               ? 'bg-sky-600 text-white'
               : 'bg-slate-800/80 text-sky-400 hover:text-white hover:bg-slate-700'"
-            @click="selectedStatusFilter = 'in_transit'"
+            @click="selectedStatusFilter = 'maritime_transit'"
           >
-            En Tránsito
+            Tránsito Marítimo
           </button>
           <button
             type="button"
             class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-            :class="selectedStatusFilter === 'checkpoint'
+            :class="selectedStatusFilter === 'destination_customs'
               ? 'bg-yellow-600 text-white'
               : 'bg-slate-800/80 text-yellow-400 hover:text-white hover:bg-slate-700'"
-            @click="selectedStatusFilter = 'checkpoint'"
+            @click="selectedStatusFilter = 'destination_customs'"
           >
-            Checkpoint
+            Aduana Destino
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
+            :class="selectedStatusFilter === 'baifa_warehouse'
+              ? 'bg-cyan-600 text-white'
+              : 'bg-slate-800/80 text-cyan-400 hover:text-white hover:bg-slate-700'"
+            @click="selectedStatusFilter = 'baifa_warehouse'"
+          >
+            Almacén BaiFa
           </button>
           <button
             type="button"
             class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
             :class="selectedStatusFilter === 'delivered'
-              ? 'bg-green-600 text-white'
-              : 'bg-slate-800/80 text-green-400 hover:text-white hover:bg-slate-700'"
+              ? 'bg-emerald-600 text-white'
+              : 'bg-slate-800/80 text-emerald-400 hover:text-white hover:bg-slate-700'"
             @click="selectedStatusFilter = 'delivered'"
           >
-            Entregados
-          </button>
-          <button
-            type="button"
-            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-            :class="selectedStatusFilter === 'installed'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-slate-800/80 text-emerald-300 hover:text-white hover:bg-slate-700'"
-            @click="selectedStatusFilter = 'installed'"
-          >
-            Instalados
+            Entregado
           </button>
         </div>
       </div>
@@ -564,8 +615,9 @@ const handleConfirmDelete = async () => {
                       <v-icon icon="mdi-pencil-outline" size="18" />
                     </button>
 
-                    <!-- Eliminar -->
+                    <!-- Eliminar (Exclusivo Admin y Manager) -->
                     <button
+                      v-if="canDelete"
                       type="button"
                       title="Eliminar generador"
                       class="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors cursor-pointer"

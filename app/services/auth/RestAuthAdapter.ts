@@ -10,7 +10,9 @@ import type {
   ForgotPasswordData,
   ForgotPasswordResponse,
   ResetPasswordData,
-  ResetPasswordResponse
+  ResetPasswordResponse,
+  UpdateProfileData,
+  UpdateProfileResponse
 } from '~~/types/auth'
 
 /**
@@ -45,10 +47,10 @@ export class RestAuthAdapter implements AuthService {
     const roleLabelMap: Record<string, string> = {
       admin: 'Superadministrador',
       superadmin: 'Superadministrador',
-      manager: 'Administrador',
+      manager: 'Jefe / Gerente',
       administrator: 'Administrador',
-      employee: 'Operador',
-      operator: 'Operador',
+      employee: 'Empleado',
+      operator: 'Empleado',
       viewer: 'Visualizador',
       client: 'Cliente'
     }
@@ -221,6 +223,28 @@ export class RestAuthAdapter implements AuthService {
       return {
         success: false,
         message: apiErr.message || 'No fue posible restablecer la contraseña.',
+        errors: apiErr.errors
+      }
+    }
+  }
+
+  /**
+   * Actualiza los datos de perfil, contraseña y/o empresa asociada del usuario autenticado
+   */
+  async updateProfile(data: UpdateProfileData): Promise<UpdateProfileResponse> {
+    try {
+      const response = await this.api.put<any>('/v1/auth/profile', data)
+      const rawUser = response.user || response.data?.user || response.data
+      return {
+        success: true,
+        message: response.message || 'Tu perfil ha sido actualizado exitosamente.',
+        user: rawUser ? this.normalizeUser(rawUser) : undefined
+      }
+    } catch (err: unknown) {
+      const apiErr = err as ApiErrorResponse
+      return {
+        success: false,
+        message: apiErr.message || 'No fue posible actualizar los datos del perfil.',
         errors: apiErr.errors
       }
     }

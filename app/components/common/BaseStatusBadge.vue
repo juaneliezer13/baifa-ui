@@ -20,25 +20,46 @@ interface StatusConfig {
 }
 
 const configMap: Record<BadgeStatus, StatusConfig> = {
-  warehouse: {
-    text: 'En Warehouse',
-    bgClass: 'bg-purple-500/15 border border-purple-500/30',
-    textClass: 'text-purple-300',
-    dotClass: 'bg-purple-400',
+  purchase_order: {
+    text: 'Orden de Compra',
+    bgClass: 'bg-violet-500/15 border border-violet-500/30',
+    textClass: 'text-violet-300',
+    dotClass: 'bg-violet-400',
     showDot: true
   },
-  in_transit: {
-    text: 'En Tránsito',
+  in_production: {
+    text: 'En Producción',
+    bgClass: 'bg-amber-500/15 border border-amber-500/30',
+    textClass: 'text-amber-300',
+    dotClass: 'bg-amber-400',
+    showDot: true
+  },
+  origin_customs: {
+    text: 'En Aduana de Origen',
+    bgClass: 'bg-orange-500/15 border border-orange-500/30',
+    textClass: 'text-orange-300',
+    dotClass: 'bg-orange-400',
+    showDot: true
+  },
+  maritime_transit: {
+    text: 'En Tránsito Marítimo',
     bgClass: 'bg-sky-500/15 border border-sky-500/30',
     textClass: 'text-sky-300',
     dotClass: 'bg-sky-400',
     showDot: true
   },
-  checkpoint: {
-    text: 'En Punto de Control',
-    bgClass: 'bg-amber-500/15 border border-amber-500/30',
-    textClass: 'text-amber-300',
-    dotClass: 'bg-amber-400',
+  destination_customs: {
+    text: 'En Aduana Destino',
+    bgClass: 'bg-yellow-500/15 border border-yellow-500/30',
+    textClass: 'text-yellow-300',
+    dotClass: 'bg-yellow-400',
+    showDot: true
+  },
+  baifa_warehouse: {
+    text: 'En Almacén BaiFa',
+    bgClass: 'bg-cyan-500/15 border border-cyan-500/30',
+    textClass: 'text-cyan-300',
+    dotClass: 'bg-cyan-400',
     showDot: true
   },
   delivered: {
@@ -46,13 +67,6 @@ const configMap: Record<BadgeStatus, StatusConfig> = {
     bgClass: 'bg-emerald-500/15 border border-emerald-500/30',
     textClass: 'text-emerald-300',
     dotClass: 'bg-emerald-400',
-    showDot: true
-  },
-  installed: {
-    text: 'Instalado',
-    bgClass: 'bg-green-500/15 border border-green-500/30',
-    textClass: 'text-green-300',
-    dotClass: 'bg-green-400',
     showDot: true
   },
   active: {

@@ -17,11 +17,13 @@ export const useGenerators = () => {
   const generators = ref<GeneratorItem[]>([])
   const summary = ref<GeneratorSummaryMetrics>({
     total: 0,
-    warehouse: 0,
-    in_transit: 0,
-    checkpoint: 0,
-    delivered: 0,
-    installed: 0
+    purchase_order: 0,
+    in_production: 0,
+    origin_customs: 0,
+    maritime_transit: 0,
+    destination_customs: 0,
+    baifa_warehouse: 0,
+    delivered: 0
   })
 
   const isLoading = ref(false)
@@ -38,49 +40,65 @@ export const useGenerators = () => {
   }
 
   /**
-   * Helper para obtener la configuración visual y texto de cada estado acorde a Figma
+   * Helper para obtener la configuración visual y texto de cada estado logístico
    */
   const getStatusConfig = (status: GeneratorStatus | string) => {
     switch (status) {
-      case 'warehouse':
+      case 'purchase_order':
         return {
-          label: 'En Almacén',
+          label: 'Orden de Compra',
           color: 'violet',
           bgClass: 'bg-violet-500/10 border border-violet-500/20 text-violet-400',
           chipColor: 'deep-purple-darken-1',
-          icon: 'mdi-warehouse'
+          icon: 'mdi-clipboard-text-outline'
         }
-      case 'in_transit':
+      case 'in_production':
         return {
-          label: 'En Tránsito',
+          label: 'En Producción',
+          color: 'amber',
+          bgClass: 'bg-amber-500/10 border border-amber-500/20 text-amber-400',
+          chipColor: 'amber-darken-2',
+          icon: 'mdi-factory'
+        }
+      case 'origin_customs':
+        return {
+          label: 'En Aduana de Origen',
+          color: 'orange',
+          bgClass: 'bg-orange-500/10 border border-orange-500/20 text-orange-400',
+          chipColor: 'orange-darken-2',
+          icon: 'mdi-stamper'
+        }
+      case 'maritime_transit':
+        return {
+          label: 'En Tránsito Marítimo',
           color: 'sky',
           bgClass: 'bg-sky-500/10 border border-sky-500/20 text-sky-400',
           chipColor: 'light-blue-darken-1',
-          icon: 'mdi-truck-fast-outline'
+          icon: 'mdi-ferry'
         }
-      case 'checkpoint':
+      case 'destination_customs':
         return {
-          label: 'En Punto de Control',
+          label: 'En Aduana Destino',
           color: 'yellow',
           bgClass: 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400',
-          chipColor: 'amber-darken-2',
-          icon: 'mdi-map-marker-radius-outline'
+          chipColor: 'yellow-darken-2',
+          icon: 'mdi-anchor'
+        }
+      case 'baifa_warehouse':
+        return {
+          label: 'En Almacén BaiFa',
+          color: 'cyan',
+          bgClass: 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400',
+          chipColor: 'cyan-darken-2',
+          icon: 'mdi-warehouse'
         }
       case 'delivered':
         return {
-          label: 'Entregado en Locación',
-          color: 'green',
-          bgClass: 'bg-green-500/10 border border-green-500/20 text-green-400',
-          chipColor: 'green-darken-1',
-          icon: 'mdi-check-circle-outline'
-        }
-      case 'installed':
-        return {
-          label: 'Instalado y Operativo',
+          label: 'Entregado',
           color: 'emerald',
-          bgClass: 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300',
+          bgClass: 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400',
           chipColor: 'emerald-darken-2',
-          icon: 'mdi-lightning-bolt-circle'
+          icon: 'mdi-check-circle-outline'
         }
       default:
         return {
@@ -157,17 +175,26 @@ export const useGenerators = () => {
       const response = await api.get<any>('/v1/generators/summary')
       summary.value = {
         total: Number(response.total || 0),
-        warehouse: Number(response.warehouse || 0),
-        in_transit: Number(response.in_transit || 0),
-        checkpoint: Number(response.checkpoint || 0),
-        delivered: Number(response.delivered || 0),
-        installed: Number(response.installed || 0)
+        purchase_order: Number(response.purchase_order || 0),
+        in_production: Number(response.in_production || 0),
+        origin_customs: Number(response.origin_customs || 0),
+        maritime_transit: Number(response.maritime_transit || 0),
+        destination_customs: Number(response.destination_customs || 0),
+        baifa_warehouse: Number(response.baifa_warehouse || 0),
+        delivered: Number(response.delivered || 0)
       }
       return summary.value
-    } catch (err: unknown) {
-      // Fallback local calculando a partir de la lista cargada
+    } catch {
       const total = generators.value.length
-      const counts = { warehouse: 0, in_transit: 0, checkpoint: 0, delivered: 0, installed: 0 }
+      const counts = {
+        purchase_order: 0,
+        in_production: 0,
+        origin_customs: 0,
+        maritime_transit: 0,
+        destination_customs: 0,
+        baifa_warehouse: 0,
+        delivered: 0
+      }
       generators.value.forEach(g => {
         if (g.status in counts) {
           counts[g.status as keyof typeof counts]++

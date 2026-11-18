@@ -54,8 +54,9 @@ export const useApi = () => {
       headers['Content-Type'] = 'application/json'
     }
 
-    if (token.value) {
-      headers.Authorization = `Bearer ${token.value}`
+    const activeToken = useCookie<string | null>('baifa_auth_token').value || token.value
+    if (activeToken) {
+      headers.Authorization = `Bearer ${activeToken}`
     }
 
     if (customHeaders) {
@@ -77,6 +78,13 @@ export const useApi = () => {
 
     const data = fetchError.response._data as Record<string, any> | undefined
     const statusCode = fetchError.response.status
+
+    if (statusCode === 413) {
+      return {
+        message: 'La fotografía o archivo adjunto supera el tamaño máximo permitido por el servidor (máx. 5 MB).',
+        statusCode: 413
+      }
+    }
 
     let message = data?.message || fetchError.message || 'Ocurrió un error inesperado en la petición.'
     const errors: Record<string, string[]> = {}

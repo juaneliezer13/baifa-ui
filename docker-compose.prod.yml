@@ -1,6 +1,6 @@
 services:
   front:
-    image: juaneliezer13/baifa-ui:release-1.0.5
+    image: juaneliezer13/baifa-ui:release-1.0.8
     container_name: baifa-ui
     restart: unless-stopped
     ports:

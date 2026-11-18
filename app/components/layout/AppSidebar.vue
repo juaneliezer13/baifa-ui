@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import AppLogo from '~/components/common/AppLogo.vue'
 
 interface NavItem {
   label: string
@@ -19,6 +20,7 @@ const navItems = computed<NavItem[]>(() => {
       { label: 'Dashboard', to: '/', icon: 'mdi-view-dashboard-outline' },
       { label: 'Rastrear', to: '/tracking', icon: 'mdi-magnify' },
       { label: 'Generadores', to: '/generators', icon: 'mdi-flash-outline' },
+      { label: 'Mi Perfil', to: '/profile', icon: 'mdi-account-cog-outline' },
     ]
   }
 
@@ -34,9 +36,27 @@ const navItems = computed<NavItem[]>(() => {
     items.push({ label: 'Usuarios', to: '/users', icon: 'mdi-lock-outline' })
   }
 
-  items.push({ label: 'Reportes', to: '/reports', icon: 'mdi-chart-bar' })
+  // Solo administradores y gerentes tienen acceso al módulo de Reportes Ejecutivos
+  if (['admin', 'manager'].includes(user.value?.role || '')) {
+    items.push({ label: 'Reportes', to: '/reports', icon: 'mdi-chart-bar' })
+  }
+
+  items.push({ label: 'Mi Perfil', to: '/profile', icon: 'mdi-account-cog-outline' })
 
   return items
+})
+
+const roleBadgeClass = computed(() => {
+  switch (user.value?.role) {
+    case 'admin':
+      return 'text-red-400 bg-red-950/60 border-red-800/40'
+    case 'manager':
+      return 'text-amber-400 bg-amber-950/60 border-amber-800/40'
+    case 'employee':
+      return 'text-sky-400 bg-sky-950/60 border-sky-800/40'
+    default:
+      return 'text-emerald-400 bg-emerald-950/60 border-emerald-800/40'
+  }
 })
 
 const isActive = (path: string): boolean => {
@@ -55,15 +75,11 @@ const handleLogout = async () => {
   <aside class="w-64 h-full bg-[#0f172a] border-r border-[#1e293b] flex flex-col justify-between p-4 select-none shrink-0">
     <!-- Header: Logo & Branding -->
     <div>
-      <div class="flex items-center gap-3 px-2 py-3 mb-6">
-        <div class="w-9 h-9 bg-[#3eb134] rounded-xl flex items-center justify-center text-white shadow-md shadow-[#3eb134]/25">
-          <v-icon icon="mdi-flash" size="22" />
-        </div>
-        <div>
-          <h1 class="text-lg font-bold text-white tracking-tight leading-tight">
-            Baifa
-          </h1>
-        </div>
+      <div class="flex flex-col gap-1 px-2 py-3 mb-6">
+        <AppLogo variant="green" size="md" />
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 pl-0.5">
+          Logistics Platform
+        </span>
       </div>
 
       <!-- Navigation Links -->
@@ -109,7 +125,10 @@ const handleLogout = async () => {
                 {{ user?.name || 'Usuario' }}
               </div>
               <div class="mt-1">
-                <span class="inline-block text-[10px] font-medium text-red-400 bg-red-950/60 border border-red-800/40 px-2 py-0.5 rounded-full leading-none">
+                <span
+                  class="inline-block text-[10px] font-medium border px-2 py-0.5 rounded-full leading-none"
+                  :class="roleBadgeClass"
+                >
                   {{ user?.roleLabel || 'Usuario' }}
                 </span>
               </div>
@@ -129,15 +148,14 @@ const handleLogout = async () => {
             </div>
           </div>
 
-          <!-- Opción: Ver Perfil (link inactivo sin navegación) -->
-          <a
-            href="#"
+          <!-- Opción: Ver / Gestionar Perfil -->
+          <NuxtLink
+            to="/profile"
             class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
-            @click.prevent
           >
-            <v-icon icon="mdi-account-outline" size="18" class="text-slate-400" />
-            <span>Ver perfil</span>
-          </a>
+            <v-icon icon="mdi-account-cog-outline" size="18" class="text-[#3eb134]" />
+            <span>Mi perfil</span>
+          </NuxtLink>
 
           <!-- Opción: Cerrar Sesión (destruye cookies y redirige a login) -->
           <button

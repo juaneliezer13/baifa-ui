@@ -170,15 +170,19 @@ const formatSimpleDate = (dateStr?: string | null): string => {
 
 const getDotColorClass = (status: GeneratorStatus | string): string => {
   switch (status) {
-    case 'warehouse':
+    case 'purchase_order':
       return 'bg-violet-400 ring-violet-400/30'
-    case 'in_transit':
+    case 'in_production':
+      return 'bg-amber-400 ring-amber-400/30'
+    case 'origin_customs':
+      return 'bg-orange-400 ring-orange-400/30'
+    case 'maritime_transit':
       return 'bg-sky-400 ring-sky-400/30'
-    case 'checkpoint':
+    case 'destination_customs':
       return 'bg-yellow-400 ring-yellow-400/30'
+    case 'baifa_warehouse':
+      return 'bg-cyan-400 ring-cyan-400/30'
     case 'delivered':
-      return 'bg-green-400 ring-green-400/30'
-    case 'installed':
       return 'bg-emerald-400 ring-emerald-400/30'
     default:
       return 'bg-orange-500 ring-orange-500/30'

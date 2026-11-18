@@ -7,7 +7,9 @@ import type {
   ForgotPasswordData,
   ForgotPasswordResponse,
   ResetPasswordData,
-  ResetPasswordResponse
+  ResetPasswordResponse,
+  UpdateProfileData,
+  UpdateProfileResponse
 } from '~~/types/auth'
 
 /**
@@ -45,4 +47,9 @@ export interface AuthService {
    * Restablecer contraseña con token y nueva clave
    */
   resetPassword(data: ResetPasswordData): Promise<ResetPasswordResponse>
+
+  /**
+   * Actualizar perfil, contraseña y/o empresa del usuario autenticado
+   */
+  updateProfile(data: UpdateProfileData): Promise<UpdateProfileResponse>
 }

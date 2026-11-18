@@ -9,7 +9,9 @@ import type {
   ForgotPasswordData,
   ForgotPasswordResponse,
   ResetPasswordData,
-  ResetPasswordResponse
+  ResetPasswordResponse,
+  UpdateProfileData,
+  UpdateProfileResponse
 } from '~~/types/auth'
 
 export const useAuth = () => {
@@ -185,6 +187,39 @@ export const useAuth = () => {
     }
   }
 
+  /**
+   * Actualizar perfil, contraseña y/o empresa del usuario autenticado
+   */
+  const updateProfile = async (data: UpdateProfileData): Promise<UpdateProfileResponse> => {
+    isLoading.value = true
+    errorMessage.value = ''
+    fieldErrors.value = undefined
+
+    try {
+      const response = await authService.updateProfile(data)
+      if (response.success) {
+        if (response.user) {
+          user.value = response.user
+        } else {
+          await fetchUser()
+        }
+      } else {
+        errorMessage.value = response.message || 'No fue posible actualizar el perfil.'
+        fieldErrors.value = response.errors
+      }
+      return response
+    } catch (err: unknown) {
+      const errorMsg = (err as any)?.message || 'Ocurrió un error inesperado al actualizar el perfil.'
+      errorMessage.value = errorMsg
+      return {
+        success: false,
+        message: errorMsg
+      }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     token,
     user,
@@ -197,6 +232,7 @@ export const useAuth = () => {
     logout,
     fetchUser,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    updateProfile
   }
 }

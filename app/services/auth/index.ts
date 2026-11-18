@@ -3,17 +3,11 @@ import { RestAuthAdapter } from './RestAuthAdapter'
 
 /**
  * Factoría para obtener el servicio de autenticación activo.
- * Por defecto instancia RestAuthAdapter, que gestiona llamadas REST
- * configurables y compatibilidad universal.
+ * Se instancia por invocación de composable para enlazar siempre
+ * el contexto reactivo actual de cookies (useCookie) en Nuxt 4.
  */
-let instance: AuthService | null = null
-
 export const getAuthService = (): AuthService => {
-  // En Nuxt / Vue SSR es mejor instanciar por contexto o singleton en cliente
-  if (!instance || import.meta.server) {
-    instance = new RestAuthAdapter()
-  }
-  return instance
+  return new RestAuthAdapter()
 }
 
 export * from './AuthService'
